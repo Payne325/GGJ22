@@ -40,7 +40,7 @@ async fn main() {
     };
 
     let mut platform = Platform {
-        collider: world.add_solid(vec2(170.0, 130.0), 32, 8),
+        collider: world.add_solid(vec2(170.0, 130.0), 8, 8),
         speed: 50.,
     };
 
@@ -56,10 +56,10 @@ async fn main() {
         // draw platform
         {
             let pos = world.solid_pos(platform.collider);
-            tiled_map.spr_ex(
+            tiled_map.spr(
                 "tileset",
-                Rect::new(6.0 * 8.0, 0.0, 32.0, 8.0),
-                Rect::new(pos.x, pos.y, 32.0, 8.0),
+                120,
+                Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
             )
         }
 
@@ -83,7 +83,7 @@ async fn main() {
         // player movement control
         {
             let pos = world.actor_pos(player.collider);
-            let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
+            //let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
 
             // if on_ground == false {
             //     player.speed.y += 500. * get_frame_time();
