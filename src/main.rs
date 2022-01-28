@@ -14,7 +14,7 @@ struct Player {
 struct Panda {
     collider: Actor,
     speed: Vec2,
-    mover: AltMover
+    mover: Box< dyn Mover > 
 }
 
 impl Panda {
@@ -51,7 +51,7 @@ async fn main() {
     let mut panda = Panda {
         collider: world.add_actor(vec2(170.0, 130.0), 8, 8),
         speed: vec2(0., 50.),
-        mover: mover::AltMover {},
+        mover: Box::new(AltMover {}),
     };
 
     let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
