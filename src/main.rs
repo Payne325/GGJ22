@@ -1,17 +1,26 @@
+mod mover;
+
 use macroquad::prelude::*;
-
 use macroquad_tiled as tiled;
-
 use macroquad_platformer::*;
+
+use mover::{Mover, BasicMover, AltMover};
 
 struct Player {
     collider: Actor,
     speed: Vec2,
 }
 
-struct Platform {
-    collider: Solid,
-    speed: f32,
+struct Panda {
+    collider: Actor,
+    speed: Vec2,
+    mover: Box< dyn Mover > 
+}
+
+impl Panda {
+   pub fn apply_movement(&mut self, world: &mut World) {
+      self.mover.apply_movement_routine(world, &self.collider, &mut self.speed)
+   }
 }
 
 #[macroquad::main("Platformer")]
@@ -39,9 +48,10 @@ async fn main() {
         speed: vec2(0., 0.),
     };
 
-    let mut platform = Platform {
-        collider: world.add_solid(vec2(170.0, 130.0), 8, 8),
-        speed: 50.,
+    let mut panda = Panda {
+        collider: world.add_actor(vec2(170.0, 130.0), 8, 8),
+        speed: vec2(0., 50.),
+        mover: Box::new(AltMover {}),
     };
 
     let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
@@ -53,12 +63,14 @@ async fn main() {
 
         tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
 
-        // draw platform
+        const CHARACTER_SPRITE: u32 = 120;
+
+        // draw panda
         {
-            let pos = world.solid_pos(platform.collider);
+            let pos = world.actor_pos(panda.collider);
             tiled_map.spr(
                 "tileset",
-                120,
+                CHARACTER_SPRITE,
                 Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
             )
         }
@@ -66,15 +78,13 @@ async fn main() {
         // draw player
         {
             // sprite id from tiled
-            const PLAYER_SPRITE: u32 = 120;
-
             let pos = world.actor_pos(player.collider);
             if player.speed.x >= 0.0 {
-                tiled_map.spr("tileset", PLAYER_SPRITE, Rect::new(pos.x, pos.y, 8.0, 8.0));
+                tiled_map.spr("tileset", CHARACTER_SPRITE, Rect::new(pos.x, pos.y, 8.0, 8.0));
             } else {
                 tiled_map.spr(
                     "tileset",
-                    PLAYER_SPRITE,
+                    CHARACTER_SPRITE,
                     Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
                 );
             }
@@ -82,7 +92,7 @@ async fn main() {
 
         // player movement control
         {
-            let pos = world.actor_pos(player.collider);
+            //let pos = world.actor_pos(player.collider);
             //let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
 
             // if on_ground == false {
@@ -116,16 +126,9 @@ async fn main() {
             world.move_v(player.collider, player.speed.y * get_frame_time());
         }
 
-        // platform movement
+        // panda movement
         {
-            world.solid_move(platform.collider, platform.speed * get_frame_time(), 0.0);
-            let pos = world.solid_pos(platform.collider);
-            if platform.speed > 1. && pos.x >= 220. {
-                platform.speed *= -1.;
-            }
-            if platform.speed < -1. && pos.x <= 150. {
-                platform.speed *= -1.;
-            }
+            panda.apply_movement(&mut world);
         }
 
         next_frame().await
