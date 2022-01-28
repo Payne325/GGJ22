@@ -85,23 +85,32 @@ async fn main() {
             let pos = world.actor_pos(player.collider);
             let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
 
-            if on_ground == false {
-                player.speed.y += 500. * get_frame_time();
-            }
+            // if on_ground == false {
+            //     player.speed.y += 500. * get_frame_time();
+            // }
 
             if is_key_down(KeyCode::Right) {
                 player.speed.x = 100.0;
+                player.speed.y = 0.0;
             } else if is_key_down(KeyCode::Left) {
                 player.speed.x = -100.0;
+                player.speed.y = 0.0;
+            } else if is_key_down(KeyCode::Up) {
+                player.speed.x = 0.0;
+                player.speed.y = -100.0;
+            } else if is_key_down(KeyCode::Down) {
+                player.speed.x = 0.0;
+                player.speed.y = 100.0;
             } else {
-                player.speed.x = 0.;
+                player.speed.x = 0.0;
+                player.speed.y = 0.0;
             }
 
-            if is_key_pressed(KeyCode::Space) {
-                if on_ground {
-                    player.speed.y = -120.;
-                }
-            }
+            // if is_key_pressed(KeyCode::Space) {
+            //     if on_ground {
+            //         player.speed.y = -120.;
+            //     }
+            // }
 
             world.move_h(player.collider, player.speed.x * get_frame_time());
             world.move_v(player.collider, player.speed.y * get_frame_time());
