@@ -39,7 +39,6 @@ impl Mover for AltMover {
       world.move_v(*collider, speed.y * get_frame_time());
       
       let pos = world.actor_pos(*collider);
-      println!("{}", pos);
       if speed.y > 1. && pos.y >= 130. {
          speed.y *= -1.;
       }

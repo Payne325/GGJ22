@@ -11,10 +11,18 @@ struct Player {
     speed: Vec2,
 }
 
+#[derive(PartialEq)]
+enum PandaState {
+   normal,
+   grabbed,
+   thrown
+}
+
 struct Panda {
     collider: Actor,
     speed: Vec2,
-    mover: Box< dyn Mover > 
+    mover: Box<dyn Mover>,
+    state: PandaState, 
 }
 
 impl Panda {
@@ -52,6 +60,7 @@ async fn main() {
         collider: world.add_actor(vec2(170.0, 130.0), 8, 8),
         speed: vec2(0., 50.),
         mover: Box::new(AltMover {}),
+        state: PandaState::normal,
     };
 
     let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
@@ -92,13 +101,6 @@ async fn main() {
 
         // player movement control
         {
-            //let pos = world.actor_pos(player.collider);
-            //let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
-
-            // if on_ground == false {
-            //     player.speed.y += 500. * get_frame_time();
-            // }
-
             if is_key_down(KeyCode::Right) {
                 player.speed.x = 100.0;
                 player.speed.y = 0.0;
@@ -116,12 +118,6 @@ async fn main() {
                 player.speed.y = 0.0;
             }
 
-            // if is_key_pressed(KeyCode::Space) {
-            //     if on_ground {
-            //         player.speed.y = -120.;
-            //     }
-            // }
-
             world.move_h(player.collider, player.speed.x * get_frame_time());
             world.move_v(player.collider, player.speed.y * get_frame_time());
         }
@@ -129,6 +125,25 @@ async fn main() {
         // panda movement
         {
             panda.apply_movement(&mut world);
+        }
+
+        // collision detection
+        {
+           let player_pos = world.actor_pos(player.collider);
+           let panda_pos = world.actor_pos(panda.collider);
+           
+           if (player_pos.x - panda_pos.x).abs() < 5.0 && 
+              (player_pos.y - panda_pos.y).abs() < 5.0 &&
+              is_key_down(KeyCode::Space)
+              {
+                 panda.state = PandaState::grabbed;
+                 println!("Yo put me down bro!");
+              }
+
+           // handle collision
+           if panda.state == PandaState::grabbed {
+               world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
+           }
         }
 
         next_frame().await
