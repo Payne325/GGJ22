@@ -7,7 +7,7 @@ use kira::manager::*;
 use kira::sound::*;
 use kira::instance::*;
 
-use mover::{ThrownMover, AltMover, BasicMover, Mover};
+use mover::{ThrownMover, NormalMover, Mover};
 
 #[derive(PartialEq)]
 enum PlayerState {
@@ -81,7 +81,7 @@ async fn main() {
    let mut panda = Panda {
       collider: world.add_actor(vec2(170.0, 130.0), 8, 8),
       speed: vec2(0., 50.),
-      mover: Box::new(AltMover {}),
+      mover: Box::new(NormalMover::new()),
       state: PandaState::Normal,
    };
  
@@ -189,7 +189,7 @@ async fn main() {
             panda.apply_movement(&mut world);
 
             if panda.mover.movement_complete() {
-               panda.mover = Box::new(BasicMover{});
+               panda.mover = Box::new(NormalMover::new());
                panda.speed = vec2(50., 0.);
             }
          }
