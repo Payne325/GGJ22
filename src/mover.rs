@@ -7,49 +7,36 @@ pub trait Mover {
    fn movement_complete(&self) -> bool;
 }
 
-pub struct BasicMover {
-
+pub struct NormalMover {
+   time_since_last_move: f64
 }
 
-impl Mover for BasicMover {
-   fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, speed: &mut Vec2) {
-
-      world.move_h(*collider, speed.x * get_frame_time());
-      world.move_v(*collider, speed.y * get_frame_time());
-
-      let pos = world.actor_pos(*collider);
-
-      if speed.x > 1. && pos.x >= 220. {
-         speed.x *= -1.;
-      }
-      if speed.x < -1. && pos.x <= 150. {
-         speed.x *= -1.;
+impl NormalMover {
+   pub fn new() -> Self {
+      NormalMover {
+         time_since_last_move: get_time()
       }
    }
-
-   fn movement_complete(&self) -> bool {
-      false
-   }
 }
 
 
-pub struct AltMover {
-
-}
-
-impl Mover for AltMover {
+impl Mover for NormalMover {
    fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, speed: &mut Vec2) {
       
       world.move_h(*collider, speed.x * get_frame_time());
       world.move_v(*collider, speed.y * get_frame_time());
       
-      let pos = world.actor_pos(*collider);
-      if speed.y > 1. && pos.y >= 130. {
-         speed.y *= -1.;
-      }
-      if speed.y < -1. && pos.y <= 40. {
-         speed.y *= -1.;
-      }
+      const TIME_TO_MOVE_SECONDS: f64 = 1.5;
+
+      let elapsed_time = get_time() - self.time_since_last_move;
+      if elapsed_time > TIME_TO_MOVE_SECONDS {
+
+         let temp = speed.x;
+         speed.x = -speed.y;
+         speed.y = temp;
+
+         self.time_since_last_move = get_time();
+      } 
    }
 
    fn movement_complete(&self) -> bool {
