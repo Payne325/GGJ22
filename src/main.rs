@@ -65,6 +65,8 @@ async fn main() {
    
    let mut pandas = VecDeque::<Panda>::new();
 
+   println!("w:{}, h:{}", screen_width(), screen_height());
+
    pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.)));
    pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(10.0, 10.0), vec2(0., 0.)));
    
@@ -186,9 +188,13 @@ async fn main() {
 
       // collision detection
       {
+         // detect player grabbing pandas 
          for panda in &mut pandas {
+
+
             let player_pos = world.actor_pos(player.collider);
             let panda_pos = world.actor_pos(panda.collider);
+            //println!("{}", panda_pos);
 
             const GRAB_RANGE: f32 = 10.0;
             if (player_pos.x - panda_pos.x).abs() < GRAB_RANGE
@@ -200,6 +206,50 @@ async fn main() {
                panda.state = PandaState::Grabbed;
                player.state = PlayerState::Grabbing;
             }
+         }
+
+
+         // detect pandas finding other pandas
+         let mut in_love_indices = VecDeque::<usize>::new();
+         let num_of_pandas = pandas.len();
+         for first_panda_index in 0..num_of_pandas {
+
+            let first_panda = &pandas[first_panda_index];
+            if first_panda.state != PandaState::Normal {
+               continue;
+            }
+            
+            let first_panda_pos = world.actor_pos(first_panda.collider);
+
+            for second_panda_index in first_panda_index+1..num_of_pandas {
+
+               let second_panda = &pandas[second_panda_index];
+               if second_panda.state != PandaState::Normal {
+                  continue;
+               }
+
+               let second_panda_pos = world.actor_pos(second_panda.collider);
+
+               const HUBBA_HUBBA_RANGE: f32 = 32.0;
+
+               let val = (first_panda_pos.x - second_panda_pos.x).abs();
+               let val2 = (first_panda_pos.y - second_panda_pos.y).abs();
+
+               println!("X: {} Y:{}", val, val2);
+               if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
+      
+                  println!("Marked as in love");
+                  in_love_indices.push_back(first_panda_index);
+                  in_love_indices.push_back(second_panda_index);
+               }  
+            }
+         }
+
+         for index in in_love_indices {
+
+            println!("set as in love");
+            pandas[index].state = PandaState::FoundLove;
+            pandas[index].mover = Box::new(NoMover{});
          }
       }  
 

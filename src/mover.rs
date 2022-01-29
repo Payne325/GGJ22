@@ -6,6 +6,21 @@ pub trait Mover {
    fn movement_complete(&self) -> bool;
 }
 
+pub struct NoMover {
+
+}
+
+impl Mover for NoMover {
+   fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, _: &mut Vec2) {
+      
+   }
+
+   fn movement_complete(&self) -> bool {
+      false
+   }
+}
+
+
 pub struct NormalMover {
    time_since_last_move: f64
 }

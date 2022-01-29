@@ -14,7 +14,7 @@ pub struct Panda {
    pub collider: Actor,
    pub speed: Vec2,
    pub mover: Box<dyn Mover>,
-   pub state: PandaState,
+   pub state: PandaState
 }
 
 impl Panda {
@@ -27,7 +27,7 @@ impl Panda {
 
 
 pub struct PandaFactory {
-
+   
 }
 
 impl PandaFactory {
