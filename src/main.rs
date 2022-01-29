@@ -37,8 +37,11 @@ async fn main() {
    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
    audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
-   let panda_texture = load_texture("assets/panda.png").await.unwrap();
-   let player_texture = load_texture("assets/cupid_panda.png").await.unwrap();
+   let panda_normal_texture = load_texture("assets/panda.png").await.unwrap();
+   let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
+
+   let player_normal_texture = load_texture("assets/cupid_panda.png").await.unwrap();
+   let player_grabbing_texture = load_texture("assets/cupid_panda_black.png").await.unwrap();
 
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
@@ -99,14 +102,34 @@ async fn main() {
       {
          for panda in &pandas {
             let pos = world.actor_pos(panda.collider);
-            draw_texture_ex(panda_texture,
-               pos.x, 
-               pos.y, 
-               WHITE,
-               DrawTextureParams {
-                  dest_size: Some(vec2(32.0, 32.0)),
-                  ..Default::default()
-              });
+            
+            if panda.state == PandaState::Thrown { 
+               draw_texture_ex(panda_thrown_texture,
+                  pos.x, 
+                  pos.y, 
+                  WHITE,
+                  DrawTextureParams {
+                     dest_size: Some(vec2(32.0, 32.0)),
+                     source: Some(Rect::new(
+                        0.0,
+                        0.0,
+                        32.0,
+                        32.0,
+                    )),
+                     ..Default::default()
+                 });
+            } else { 
+               draw_texture_ex(panda_normal_texture
+                  ,
+                  pos.x, 
+                  pos.y, 
+                  WHITE,
+                  DrawTextureParams {
+                     dest_size: Some(vec2(32.0, 32.0)),
+                     ..Default::default()
+                 });
+             };
+
          }
       }
 
@@ -114,7 +137,8 @@ async fn main() {
       {
          // sprite id from tiled
          let pos = world.actor_pos(player.collider);
-         draw_texture_ex(player_texture,
+         let texture = if player.state == PlayerState::Grabbing { player_grabbing_texture } else { player_normal_texture };
+         draw_texture_ex(texture,
             pos.x, 
             pos.y, 
             WHITE,
@@ -250,7 +274,6 @@ async fn main() {
          }
 
          for index in in_love_indices {
-
             pandas[index].state = PandaState::FoundLove;
             pandas[index].mover = Box::new(NoMover{});
          }
