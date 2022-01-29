@@ -39,6 +39,7 @@ async fn main() {
    audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
    let panda_normal_texture = load_texture("assets/panda.png").await.unwrap();
+   let panda_walking_texture = load_texture("assets/walking_panda.png").await.unwrap();
    let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
 
    let player_normal_texture = load_texture("assets/cupid_panda.png").await.unwrap();
@@ -132,12 +133,18 @@ async fn main() {
                  });
             } else { 
                draw_texture_ex(
-                  panda_normal_texture,
+                  panda_walking_texture,
                   pos.x, 
                   pos.y, 
                   WHITE,
                   DrawTextureParams {
                      dest_size: Some(vec2(32.0, 32.0)),
+                     source: Some(Rect::new(
+                        32.0 * panda.walk_anim_index,
+                        0.0,
+                        32.0,
+                        32.0,
+                    )),
                      ..Default::default()
                  });
              };
@@ -151,7 +158,7 @@ async fn main() {
                   DrawTextureParams {
                      dest_size: Some(vec2(16.0, 16.0)),
                      source: Some(Rect::new(
-                        16.0 * panda.anim_index,
+                        16.0 * panda.heart_anim_index,
                         0.0,
                         16.0,
                         16.0,
@@ -344,19 +351,14 @@ async fn main() {
 
       // update animation count
       {
-         let lover_pandas = 
-            pandas.iter_mut().filter(|p| p.state == PandaState::FoundLove);
+         let lover_pandas = pandas.iter_mut(); 
+            //pandas.iter_mut().filter(|p| p.state == PandaState::FoundLove);
 
          for p in lover_pandas {
             p.frame_countdown -= get_frame_time();
 
             if p.frame_countdown <= 0.0 {
-               p.reset_frame_countdown();
-               p.anim_index += 1.0;
-
-               if p.anim_index == 16.0 {
-                  p.anim_index = 0.0;
-               }
+               p.update_animation_indices();
             }
          }
       }
