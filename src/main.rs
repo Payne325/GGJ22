@@ -42,6 +42,7 @@ async fn main() {
 
    let panda_walking_texture = load_texture("assets/walking_panda.png").await.unwrap();
    let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
+   let panda_love_texture = load_texture("assets/walking_panda.png").await.unwrap();
 
    let player_walking_texture = load_texture("assets/walking_cupid_panda.png").await.unwrap();
    let player_grabbing_texture = load_texture("assets/walking_cupid_panda_black.png").await.unwrap();
@@ -134,7 +135,42 @@ async fn main() {
                     )),
                      ..Default::default()
                  });
-            } else { 
+            } 
+            else if panda.state == PandaState::FoundLove {
+               draw_texture_ex(
+                  panda_love_texture,
+                  pos.x, 
+                  pos.y, 
+                  WHITE,
+                  DrawTextureParams {
+                     dest_size: Some(vec2(32.0, 32.0)),
+                     source: Some(Rect::new(
+                        32.0 * panda.love_anim_index, 
+                        0.0,
+                        32.0,
+                        32.0,
+                    )),
+                     ..Default::default()
+                 });
+
+                  draw_texture_ex(
+                     heart_texture,
+                     pos.x, 
+                     pos.y - 8.0, 
+                     WHITE,
+                     DrawTextureParams {
+                        dest_size: Some(vec2(16.0, 16.0)),
+                        source: Some(Rect::new(
+                           16.0 * panda.heart_anim_index,
+                           0.0,
+                           16.0,
+                           16.0,
+                       )),
+                        ..Default::default()
+                    });
+            }
+            else 
+            { 
                draw_texture_ex(
                   panda_walking_texture,
                   pos.x, 
@@ -150,26 +186,7 @@ async fn main() {
                     )),
                      ..Default::default()
                  });
-             };
-
-             if panda.state == PandaState::FoundLove {
-               draw_texture_ex(
-                  heart_texture,
-                  pos.x, 
-                  pos.y - 8.0, 
-                  WHITE,
-                  DrawTextureParams {
-                     dest_size: Some(vec2(16.0, 16.0)),
-                     source: Some(Rect::new(
-                        16.0 * panda.heart_anim_index,
-                        0.0,
-                        16.0,
-                        16.0,
-                    )),
-                     ..Default::default()
-                 });
-             }
-
+            }
          }
       }
 
@@ -289,7 +306,6 @@ async fn main() {
 
             let player_pos = world.actor_pos(player.collider);
             let panda_pos = world.actor_pos(panda.collider);
-            //println!("{}", panda_pos);
 
             const GRAB_RANGE: f32 = 20.0;
             if (player_pos.x - panda_pos.x).abs() < GRAB_RANGE

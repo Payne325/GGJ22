@@ -72,7 +72,7 @@ impl Mover for ThrownMover {
       let mut numerator = (self.thrown_direction.x * self.thrown_direction.x + 
          self.thrown_direction.y * self.thrown_direction.y).sqrt();
 
-      if (numerator == 0.0) {
+      if numerator == 0.0 {
          numerator = 1.0;
       }
 

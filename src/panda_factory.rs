@@ -18,6 +18,7 @@ pub struct Panda {
    pub state: PandaState,
    pub heart_anim_index: f32,
    pub walk_anim_index: f32,
+   pub love_anim_index: f32,
    pub frame_countdown: f32
 }
 
@@ -32,13 +33,18 @@ impl Panda {
       self.frame_countdown = 0.05;
       self.heart_anim_index += 1.0;
       self.walk_anim_index += 1.0;
+      self.love_anim_index += 1.0;
 
       if self.heart_anim_index == 4.0 {
          self.heart_anim_index = 0.0;
       }
 
-      if self.walk_anim_index == 9.0 {
+      if self.walk_anim_index == 4.0 {
          self.walk_anim_index = 0.0;
+      }
+
+      if self.love_anim_index == 9.0 {
+         self.love_anim_index = 0.0;
       }
    }
 }
@@ -57,6 +63,7 @@ impl PandaFactory {
          state: PandaState::Normal,
          heart_anim_index: 0.0,
          walk_anim_index: 0.0,
+         love_anim_index: 0.0,
          frame_countdown: 0.05,
       }
    }
