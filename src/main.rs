@@ -72,7 +72,7 @@ async fn main() {
 
   const THROW_COOLDOWN: f32 = 2.0;
    let mut player = Player {
-      collider: world.add_actor(vec2(32.0, 32.0), 8, 8),
+      collider: world.add_actor(vec2(32.0, 150.0), 32, 32),
       speed: 100.0,
       dir: vec2(0.0, 0.0),
       state: PlayerState::Normal,
@@ -84,8 +84,8 @@ async fn main() {
 
    println!("w:{}, h:{}", screen_width(), screen_height());
 
-   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.)));
-   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(200.0, 10.0), vec2(0., 0.)));
+   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(170.0, 230.0), vec2(0., 50.)));
+   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(200.0, 100.0), vec2(0., 0.)));
    
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 400.0, 300.0));
 
