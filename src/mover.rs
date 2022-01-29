@@ -6,21 +6,6 @@ pub trait Mover {
    fn movement_complete(&self) -> bool;
 }
 
-pub struct NoMover {
-
-}
-
-impl Mover for NoMover {
-   fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, _: &mut Vec2) {
-      
-   }
-
-   fn movement_complete(&self) -> bool {
-      false
-   }
-}
-
-
 pub struct NormalMover {
    time_since_last_move: f64
 }
@@ -107,3 +92,31 @@ impl Mover for ThrownMover {
       self.throwing_speed == 0.0
    }
 }
+
+pub struct LoveMover {
+   init_time: f64,
+   complete: bool
+}
+
+impl LoveMover {
+   pub fn new() -> Self {
+      LoveMover {
+         init_time: get_time(),
+         complete: false
+      }
+   }
+}
+
+impl Mover for LoveMover {
+   fn apply_movement_routine(&mut self, _: &mut World, _: &Actor, _: &mut Vec2) {
+
+      const TIMEOUT_SECONDS: f64 = 3.0;
+
+      if (get_time() - self.init_time) > TIMEOUT_SECONDS {
+         self.complete = true;
+      }
+   }
+   fn movement_complete(&self) -> bool {
+      self.complete
+   }
+} 
