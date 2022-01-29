@@ -8,13 +8,15 @@ pub enum PandaState {
    Grabbed,
    Thrown,
    FoundLove,
+   ReadyForDeletion
 }
 
 pub struct Panda {
    pub collider: Actor,
    pub speed: Vec2,
    pub mover: Box<dyn Mover>,
-   pub state: PandaState
+   pub state: PandaState,
+   pub anim_index: f32,
 }
 
 impl Panda {
@@ -37,6 +39,7 @@ impl PandaFactory {
          speed: init_speed,
          mover: Box::new(NormalMover::new()),
          state: PandaState::Normal,
+         anim_index: 0.0,
       }
    }
 }
