@@ -1,11 +1,13 @@
 mod mover;
+mod panda_factory;
 
 use macroquad::prelude::*;
 use macroquad_platformer::*;
 use macroquad_tiled as tiled;
 use macroquad::audio;
 
-use mover::{ThrownMover, NormalMover, Mover};
+use mover::*;
+use panda_factory::*;
 
 #[derive(PartialEq)]
 enum PlayerState {
@@ -19,28 +21,6 @@ struct Player {
    speed: Vec2,
    state: PlayerState,
    throw_cooldown: f32
-}
-
-#[derive(PartialEq)]
-enum PandaState {
-   Normal,
-   Grabbed,
-   Thrown,
-}
-
-struct Panda {
-   collider: Actor,
-   speed: Vec2,
-   mover: Box<dyn Mover>,
-   state: PandaState,
-}
-
-impl Panda {
-   pub fn apply_movement(&mut self, world: &mut World) {
-      self
-         .mover
-         .apply_movement_routine(world, &self.collider, &mut self.speed)
-   }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -80,13 +60,7 @@ async fn main() {
       throw_cooldown: THROW_COOLDOWN
    };
 
-   let mut panda = Panda {
-      collider: world.add_actor(vec2(170.0, 130.0), 8, 8),
-      speed: vec2(0., 50.),
-      mover: Box::new(NormalMover::new()),
-      state: PandaState::Normal,
-   };
- 
+   let mut panda = PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.));
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
 
    loop {
