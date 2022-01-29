@@ -20,7 +20,7 @@ enum PlayerState {
 
 struct Player {
    collider: Actor,
-   speed: Vec2,
+   speed: f32,
    dir: Vec2,
    state: PlayerState,
    throw_cooldown: f32
@@ -61,8 +61,8 @@ async fn main() {
    const THROW_COOLDOWN: f32 = 2.0;
    let mut player = Player {
       collider: world.add_actor(vec2(50.0, 80.0), 8, 8),
-      speed: vec2(0., 0.),
-      dir: vec2(1.0, 0.0),
+      speed: 100.0,
+      dir: vec2(0.0, 0.0),
       state: PlayerState::Normal,
       throw_cooldown: THROW_COOLDOWN
    };
@@ -84,8 +84,6 @@ async fn main() {
 
       tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
 
-      const CHARACTER_SPRITE: u32 = 120;
-
       // draw pandas
       {
          for panda in &pandas {
@@ -105,65 +103,47 @@ async fn main() {
       {
          // sprite id from tiled
          let pos = world.actor_pos(player.collider);
-         if player.speed.x >= 0.0 {
-            tiled_map.spr(
-               "tileset",
-               CHARACTER_SPRITE,
-               Rect::new(pos.x, pos.y, 8.0, 8.0),
-            );
-         } else {
-            tiled_map.spr(
-               "tileset",
-               CHARACTER_SPRITE,
-               Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
-            );
-         }
+         draw_texture_ex(player_texture,
+            pos.x, 
+            pos.y, 
+            WHITE,
+            DrawTextureParams {
+               dest_size: Some(vec2(32.0, 32.0)),
+               ..Default::default()
+           });
       }
 
       // player control
       {
-         let any_movement_key_down = is_key_down(KeyCode::Right) || 
-                                     is_key_down(KeyCode::Left) ||
-                                     is_key_down(KeyCode::Up) ||
-                                     is_key_down(KeyCode::Down);
-
-         if  !any_movement_key_down {
-            player.speed.x = 0.0;
-            player.speed.y = 0.0;
-         }
-
-         const PLAYER_X_SPEED: f32 = 100.0;
-         const PLAYER_Y_SPEED: f32 = 75.0;
-
-         let mut changed_dir = false;
-         let mut new_dir = vec2(0.0, 0.0);
+         player.dir = vec2(0.0, 0.0);
 
          if is_key_down(KeyCode::Right) {
-            player.speed.x = PLAYER_X_SPEED;
-            new_dir.x = 1.0;
-            changed_dir = true;
+            player.dir.x = 1.0;
          } else if is_key_down(KeyCode::Left) {
-            player.speed.x = -PLAYER_X_SPEED;
-            new_dir.x = -1.0;
-            changed_dir = true;
+            player.dir.x = -1.0;
          } 
          
          if is_key_down(KeyCode::Up) {
-            player.speed.y = -PLAYER_Y_SPEED;
-            new_dir.y = -1.0;
-            changed_dir = true;
+            player.dir.y = -1.0;
          } else if is_key_down(KeyCode::Down) {
-            player.speed.y = PLAYER_Y_SPEED;
-            new_dir.y = 1.0;
-            changed_dir = true;
+            player.dir.y = 1.0;
          } 
-
-         if (changed_dir) {
-            player.dir = new_dir;
-         }
          
-         world.move_h(player.collider, player.speed.x * get_frame_time());
-         world.move_v(player.collider, player.speed.y * get_frame_time());
+         let diag_move = player.dir.x != 0.0 && player.dir.y != 0.0;
+         let x_speed = if diag_move {
+             (1.0/(2.0 as f32).sqrt() * player.dir.x) * player.speed
+            } else {
+               player.dir.x * player.speed
+            };
+
+         let y_speed = if diag_move {
+            (1.0/(2.0 as f32).sqrt() * player.dir.y) * player.speed
+           } else {
+              player.dir.y * player.speed
+           };
+
+         world.move_h(player.collider, x_speed * get_frame_time());
+         world.move_v(player.collider, y_speed * get_frame_time());
 
          for panda in &mut pandas {
             if player.state == PlayerState::Grabbing &&
