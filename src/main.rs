@@ -24,7 +24,9 @@ struct Player {
    speed: f32,
    dir: Vec2,
    state: PlayerState,
-   throw_cooldown: f32
+   throw_cooldown: f32,
+   walk_anim_index: f32,
+   frame_countdown: f32
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -38,12 +40,11 @@ async fn main() {
    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
    audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
-   let panda_normal_texture = load_texture("assets/panda.png").await.unwrap();
    let panda_walking_texture = load_texture("assets/walking_panda.png").await.unwrap();
    let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
 
-   let player_normal_texture = load_texture("assets/cupid_panda.png").await.unwrap();
-   let player_grabbing_texture = load_texture("assets/cupid_panda_black.png").await.unwrap();
+   let player_walking_texture = load_texture("assets/walking_cupid_panda.png").await.unwrap();
+   let player_grabbing_texture = load_texture("assets/walking_cupid_panda_black.png").await.unwrap();
 
    let heart_texture = load_texture("assets/heart.png").await.unwrap();
 
@@ -77,7 +78,9 @@ async fn main() {
       speed: 100.0,
       dir: vec2(0.0, 0.0),
       state: PlayerState::Normal,
-      throw_cooldown: THROW_COOLDOWN
+      throw_cooldown: THROW_COOLDOWN,
+      walk_anim_index: 0.0,
+      frame_countdown: 0.05
    };
 
    let mut total_bamboo = 100.0;
@@ -174,13 +177,19 @@ async fn main() {
       {
          // sprite id from tiled
          let pos = world.actor_pos(player.collider);
-         let texture = if player.state == PlayerState::Grabbing { player_grabbing_texture } else { player_normal_texture };
+         let texture = if player.state == PlayerState::Grabbing { player_grabbing_texture } else { player_walking_texture };
          draw_texture_ex(texture,
             pos.x, 
             pos.y, 
             WHITE,
             DrawTextureParams {
                dest_size: Some(vec2(32.0, 32.0)),
+               source: Some(Rect::new(
+                  32.0 * player.walk_anim_index,
+                  0.0,
+                  32.0,
+                  32.0,
+              )),
                ..Default::default()
            });
       }
@@ -351,18 +360,26 @@ async fn main() {
 
       // update animation count
       {
-         let lover_pandas = pandas.iter_mut(); 
-            //pandas.iter_mut().filter(|p| p.state == PandaState::FoundLove);
-
-         for p in lover_pandas {
-            p.frame_countdown -= get_frame_time();
+         let f_dt = get_frame_time();
+         for p in pandas.iter_mut() {
+            p.frame_countdown -= f_dt;
 
             if p.frame_countdown <= 0.0 {
                p.update_animation_indices();
             }
          }
-      }
 
+         player.frame_countdown -= f_dt;
+
+         if player.frame_countdown <= 0.0 {
+            player.frame_countdown = 0.25;
+            player.walk_anim_index += 1.0;
+
+            if player.walk_anim_index == 4.0 {
+               player.walk_anim_index = 0.0;
+            }
+         }         
+      }
       next_frame().await
    }
 }
