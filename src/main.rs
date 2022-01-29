@@ -188,6 +188,7 @@ async fn main() {
                panda.apply_movement(&mut world);
 
                if panda.mover.movement_complete() {
+                  panda.state = PandaState::Normal;
                   panda.mover = Box::new(NormalMover::new());
                   panda.speed = vec2(50., 0.);
                }
@@ -199,7 +200,6 @@ async fn main() {
       {
          // detect player grabbing pandas 
          for panda in &mut pandas {
-
 
             let player_pos = world.actor_pos(player.collider);
             let panda_pos = world.actor_pos(panda.collider);
@@ -244,10 +244,8 @@ async fn main() {
                let val = (first_panda_pos.x - second_panda_pos.x).abs();
                let val2 = (first_panda_pos.y - second_panda_pos.y).abs();
 
-               println!("X: {} Y:{}", val, val2);
                if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
       
-                  println!("Marked as in love");
                   in_love_indices.push_back(first_panda_index);
                   in_love_indices.push_back(second_panda_index);
                }  
@@ -256,7 +254,6 @@ async fn main() {
 
          for index in in_love_indices {
 
-            println!("set as in love");
             pandas[index].state = PandaState::FoundLove;
             pandas[index].mover = Box::new(NoMover{});
          }
