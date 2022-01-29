@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use macroquad_platformer::*;
 
-
 pub trait Mover {
    fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, speed: &mut Vec2);
    fn movement_complete(&self) -> bool;

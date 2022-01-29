@@ -7,6 +7,7 @@ pub enum PandaState {
    Normal,
    Grabbed,
    Thrown,
+   FoundLove,
 }
 
 pub struct Panda {

@@ -9,6 +9,8 @@ use macroquad::audio;
 use mover::*;
 use panda_factory::*;
 
+use std::collections::VecDeque;
+
 #[derive(PartialEq)]
 enum PlayerState {
    Normal,
@@ -60,7 +62,12 @@ async fn main() {
       throw_cooldown: THROW_COOLDOWN
    };
 
-   let mut panda = PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.));
+   
+   let mut pandas = VecDeque::<Panda>::new();
+
+   pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.)));
+   pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(10.0, 10.0), vec2(0., 0.)));
+   
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
 
    loop {
@@ -72,14 +79,16 @@ async fn main() {
 
       const CHARACTER_SPRITE: u32 = 120;
 
-      // draw panda
+      // draw pandas
       {
-         let pos = world.actor_pos(panda.collider);
-         tiled_map.spr(
-            "tileset",
-            CHARACTER_SPRITE,
-            Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
-         )
+         for panda in &pandas {
+            let pos = world.actor_pos(panda.collider);
+            tiled_map.spr(
+               "tileset",
+               CHARACTER_SPRITE,
+               Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
+            )
+         }
       }
 
       // draw player
@@ -131,20 +140,21 @@ async fn main() {
          world.move_h(player.collider, player.speed.x * get_frame_time());
          world.move_v(player.collider, player.speed.y * get_frame_time());
 
-         if player.state == PlayerState::Grabbing &&
-            is_key_pressed(KeyCode::Space) {
+         for panda in &mut pandas {
+            if player.state == PlayerState::Grabbing &&
+               is_key_pressed(KeyCode::Space) {
 
-               player.state = PlayerState::Throwing;
-               panda.state = PandaState::Thrown;
+                  player.state = PlayerState::Throwing;
+                  panda.state = PandaState::Thrown;
 
-               let mut player_x_dir = if player.speed.x < 0.0 {-1.0 } else if player.speed.x > 0.0  { 1.0 } else { 0.0 };
-               let player_y_dir = if player.speed.y < 0.0 {-1.0 } else if player.speed.y > 0.0  { 1.0 } else { 0.0 };
+                  let mut player_x_dir = if player.speed.x < 0.0 {-1.0 } else if player.speed.x > 0.0  { 1.0 } else { 0.0 };
+                  let player_y_dir = if player.speed.y < 0.0 {-1.0 } else if player.speed.y > 0.0  { 1.0 } else { 0.0 };
 
-               if player_x_dir == player_y_dir && player_x_dir == 0.0 {
-                  player_x_dir = 1.0;
-               }
+                  if player_x_dir == player_y_dir && player_x_dir == 0.0 {
+                     player_x_dir = 1.0;
+                  }
 
-               panda.mover = Box::new(ThrownMover::new(vec2(player_x_dir, player_y_dir)));
+                  panda.mover = Box::new(ThrownMover::new(vec2(player_x_dir, player_y_dir)));
             }
             else if player.state == PlayerState::Throwing {
                player.throw_cooldown -= get_frame_time();
@@ -154,39 +164,44 @@ async fn main() {
                   player.state = PlayerState::Normal;
                }
             }
+         }
       }
 
       // panda movement
       {
-         if panda.state == PandaState::Grabbed {
-            let player_pos = world.actor_pos(player.collider);
-            world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
-         } else {
-            panda.apply_movement(&mut world);
+         for panda in &mut pandas {
+            if panda.state == PandaState::Grabbed {
+               let player_pos = world.actor_pos(player.collider);
+               world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
+            } else {
+               panda.apply_movement(&mut world);
 
-            if panda.mover.movement_complete() {
-               panda.mover = Box::new(NormalMover::new());
-               panda.speed = vec2(50., 0.);
+               if panda.mover.movement_complete() {
+                  panda.mover = Box::new(NormalMover::new());
+                  panda.speed = vec2(50., 0.);
+               }
             }
          }
       }
 
       // collision detection
       {
-         let player_pos = world.actor_pos(player.collider);
-         let panda_pos = world.actor_pos(panda.collider);
+         for panda in &mut pandas {
+            let player_pos = world.actor_pos(player.collider);
+            let panda_pos = world.actor_pos(panda.collider);
 
-         const GRAB_RANGE: f32 = 10.0;
-         if (player_pos.x - panda_pos.x).abs() < GRAB_RANGE
-            && (player_pos.y - panda_pos.y).abs() < GRAB_RANGE
-            && is_key_pressed(KeyCode::Space)
-            && panda.state != PandaState::Grabbed
-            && player.state == PlayerState::Normal
-         {
-            panda.state = PandaState::Grabbed;
-            player.state = PlayerState::Grabbing;
+            const GRAB_RANGE: f32 = 10.0;
+            if (player_pos.x - panda_pos.x).abs() < GRAB_RANGE
+               && (player_pos.y - panda_pos.y).abs() < GRAB_RANGE
+               && is_key_pressed(KeyCode::Space)
+               && panda.state != PandaState::Grabbed
+               && player.state == PlayerState::Normal
+            {
+               panda.state = PandaState::Grabbed;
+               player.state = PlayerState::Grabbing;
+            }
          }
-      }
+      }  
 
       next_frame().await
    }
