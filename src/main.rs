@@ -44,7 +44,7 @@ async fn main() {
    let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
 
    let player_walking_texture = load_texture("assets/walking_cupid_panda.png").await.unwrap();
-   let player_grabbing_texture = load_texture("assets/cupid_panda_black.png").await.unwrap();
+   let player_grabbing_texture = load_texture("assets/walking_cupid_panda_black.png").await.unwrap();
 
    let heart_texture = load_texture("assets/heart.png").await.unwrap();
 
