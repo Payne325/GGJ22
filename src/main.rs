@@ -95,22 +95,9 @@ async fn main() {
                pos.y, 
                WHITE,
                DrawTextureParams {
-                  dest_size: Some(vec2(16.0, 16.0)),
-                  source: Some(Rect::new(
-                      0.0,
-                      0.0,
-                      32.0,
-                      32.0,
-                  )),
+                  dest_size: Some(vec2(32.0, 32.0)),
                   ..Default::default()
               });
-                           
-
-            // tiled_map.spr(
-            //    "tileset",
-            //    CHARACTER_SPRITE,
-            //    Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
-            // )
          }
       }
 
