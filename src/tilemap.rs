@@ -71,9 +71,9 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
          width = 0;
          loc.x = 0.0;
 
-         let tileStrings: Vec<&str> = line.split(",").collect();
+         let tile_strings: Vec<&str> = line.split(",").collect();
 
-         for string in tileStrings {
+         for string in tile_strings {
             let index = string.trim().parse().unwrap();
 
             let t = TileData { 
@@ -92,10 +92,10 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
          height += 1;
 
       } else if read_tile {
-         let tileStrings: Vec<&str> = line.split(",").collect();
-         tilemap.tileTextures.push(load_texture(tileStrings[0]).await.unwrap());
+         let tile_strings: Vec<&str> = line.split(",").collect();
+         tilemap.tileTextures.push(load_texture(tile_strings[0]).await.unwrap());
 
-         if tileStrings[2].contains("true") {
+         if tile_strings[2].contains("true") {
             tilemap.collisionMap.push(true);
          } else {
             tilemap.collisionMap.push(false);
@@ -115,7 +115,7 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
    }
 
    world.add_static_tiled_layer(static_colliders, size.x, size.y, width, 1);
-   println!("{}", width);
+   println!("{} and {}", width, height);
 
    return tilemap;
 }
