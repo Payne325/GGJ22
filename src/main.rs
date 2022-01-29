@@ -180,7 +180,14 @@ async fn main() {
 
       // player control
       {
-         player.dir = vec2(0.0, 0.0);
+         let movement_is_happening = is_key_down(KeyCode::Right) || 
+                             is_key_down(KeyCode::Left) ||
+                             is_key_down(KeyCode::Down) || 
+                             is_key_down(KeyCode::Up);
+
+         if movement_is_happening {
+            player.dir = vec2(0.0, 0.0);
+         }
 
          if is_key_down(KeyCode::Right) {
             player.dir.x = 1.0;
@@ -207,8 +214,10 @@ async fn main() {
               player.dir.y * player.speed
            };
 
-         world.move_h(player.collider, x_speed * get_frame_time());
-         world.move_v(player.collider, y_speed * get_frame_time());
+         if movement_is_happening { 
+            world.move_h(player.collider, x_speed * get_frame_time());
+            world.move_v(player.collider, y_speed * get_frame_time());
+         }
 
          if player.state == PlayerState::Throwing {
             player.throw_cooldown -= get_frame_time();
