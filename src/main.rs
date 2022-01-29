@@ -31,6 +31,9 @@ pub enum DrumFillEvent {
 
 #[macroquad::main("Platformer")]
 async fn main() {
+
+   let panda_texture = load_texture("assets/panda.png").await.unwrap();
+
    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
    audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
@@ -67,6 +70,8 @@ async fn main() {
       clear_background(BLACK);
 
       set_camera(&camera);
+
+      draw_texture(panda_texture, 32., 32., WHITE);
 
       tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
 
