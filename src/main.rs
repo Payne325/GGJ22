@@ -32,7 +32,7 @@ pub enum DrumFillEvent {
 #[macroquad::main("Platformer")]
 async fn main() {
    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
-   audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.05});
+   audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
