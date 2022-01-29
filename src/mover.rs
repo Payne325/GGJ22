@@ -47,3 +47,31 @@ impl Mover for AltMover {
       }
    }
 }
+
+pub struct ThrownMover {
+   thrown_speed: Vec2
+}
+
+impl ThrownMover {
+   pub fn new(speed: Vec2) -> Self {
+      ThrownMover{
+         thrown_speed: speed
+      }
+   }
+}
+
+impl Mover for ThrownMover {
+   fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, _: &mut Vec2) {
+      
+      world.move_h(*collider, self.thrown_speed.x * get_frame_time());
+      world.move_v(*collider, self.thrown_speed.y * get_frame_time());
+      
+      let pos = world.actor_pos(*collider);
+      if self.thrown_speed.y > 1. && pos.y >= 130. {
+         self.thrown_speed.y *= -1.;
+      }
+      if self.thrown_speed.y < -1. && pos.y <= 40. {
+         self.thrown_speed.y *= -1.;
+      }
+   }
+}
