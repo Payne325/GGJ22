@@ -1,5 +1,6 @@
 mod mover;
 mod panda_factory;
+mod tilemap;
 
 use macroquad::prelude::*;
 use macroquad_platformer::*;
@@ -43,6 +44,7 @@ async fn main() {
    let player_normal_texture = load_texture("assets/cupid_panda.png").await.unwrap();
    let player_grabbing_texture = load_texture("assets/cupid_panda_black.png").await.unwrap();
 
+   /*
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
 
@@ -60,10 +62,14 @@ async fn main() {
 
    let mut world = World::new();
    world.add_static_tiled_layer(static_colliders, 8., 8., 40, 1);
+   */
 
-   const THROW_COOLDOWN: f32 = 2.0;
+  let mut world = World::new();
+  let mut tilemap = tilemap::load_tilemap("assets/map.txt", &mut world).await;
+
+  const THROW_COOLDOWN: f32 = 2.0;
    let mut player = Player {
-      collider: world.add_actor(vec2(50.0, 80.0), 8, 8),
+      collider: world.add_actor(vec2(32.0, 32.0), 8, 8),
       speed: 100.0,
       dir: vec2(0.0, 0.0),
       state: PlayerState::Normal,
@@ -78,14 +84,17 @@ async fn main() {
    pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.)));
    pandas.push_back(PandaFactory::CreatePanda(&mut world, vec2(10.0, 10.0), vec2(0., 0.)));
    
-   let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
+   let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 400.0, 300.0));
 
    loop {
       clear_background(GREEN);
 
       set_camera(&camera);
 
-      tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
+      // draw map
+      tilemap.draw();
+
+      // tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
 
       let text = format!("Remaining Bamboo: {}", total_bamboo as i32);
       draw_text_ex(
