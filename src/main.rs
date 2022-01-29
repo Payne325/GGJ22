@@ -16,7 +16,8 @@ enum PlayerState {
 struct Player {
    collider: Actor,
    speed: Vec2,
-   state: PlayerState
+   state: PlayerState,
+   throw_cooldown: f32
 }
 
 #[derive(PartialEq)]
@@ -61,10 +62,12 @@ async fn main() {
    let mut world = World::new();
    world.add_static_tiled_layer(static_colliders, 8., 8., 40, 1);
 
+   const THROW_COOLDOWN: f32 = 2.0;
    let mut player = Player {
       collider: world.add_actor(vec2(50.0, 80.0), 8, 8),
       speed: vec2(0., 0.),
-      state: PlayerState::Normal
+      state: PlayerState::Normal,
+      throw_cooldown: THROW_COOLDOWN
    };
 
    let mut panda = Panda {
@@ -73,7 +76,7 @@ async fn main() {
       mover: Box::new(AltMover {}),
       state: PandaState::Normal,
    };
-
+ 
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
 
    loop {
@@ -159,6 +162,14 @@ async fn main() {
 
                panda.mover = Box::new(ThrownMover::new(vec2(player_x_dir, player_y_dir)));
             }
+            else if player.state == PlayerState::Throwing {
+               player.throw_cooldown -= get_frame_time();
+
+               if player.throw_cooldown < 0.0 {
+                  player.throw_cooldown = THROW_COOLDOWN;
+                  player.state = PlayerState::Normal;
+               }
+            }
       }
 
       // panda movement
@@ -168,6 +179,11 @@ async fn main() {
             world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
          } else {
             panda.apply_movement(&mut world);
+
+            if panda.mover.movement_complete() {
+               panda.mover = Box::new(BasicMover{});
+               panda.speed = vec2(50., 0.);
+            }
          }
       }
 
