@@ -339,9 +339,15 @@ async fn main() {
             pandas.iter_mut().filter(|p| p.state == PandaState::FoundLove);
 
          for p in lover_pandas {
-            p.anim_index += 1.0;
-            if p.anim_index == 16.0 {
-               p.anim_index = 0.0;
+            p.frame_countdown -= get_frame_time();
+
+            if p.frame_countdown <= 0.0 {
+               p.reset_frame_countdown();
+               p.anim_index += 1.0;
+
+               if p.anim_index == 16.0 {
+                  p.anim_index = 0.0;
+               }
             }
          }
       }
