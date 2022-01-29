@@ -70,6 +70,16 @@ impl Mover for ThrownMover {
          ()
       }
 
+      let mut numerator = (self.thrown_direction.x * self.thrown_direction.x + 
+         self.thrown_direction.y * self.thrown_direction.y).sqrt();
+
+      if (numerator == 0.0) {
+         numerator = 1.0;
+      }
+
+      self.thrown_direction.x = self.thrown_direction.x / numerator;
+      self.thrown_direction.y = self.thrown_direction.y / numerator;
+
       world.move_h(*collider, (self.thrown_direction.x * self.throwing_speed) * get_frame_time());
       world.move_v(*collider, (self.thrown_direction.y * self.throwing_speed) * get_frame_time());
 
