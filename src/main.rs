@@ -37,6 +37,9 @@ async fn main() {
    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
    audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.015});
 
+   let panda_texture = load_texture("assets/panda.png").await.unwrap();
+   let player_texture = load_texture("assets/cupid_panda.png").await.unwrap();
+
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
 
@@ -75,7 +78,7 @@ async fn main() {
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 320.0, 152.0));
 
    loop {
-      clear_background(BLACK);
+      clear_background(GREEN);
 
       set_camera(&camera);
 
@@ -87,11 +90,27 @@ async fn main() {
       {
          for panda in &pandas {
             let pos = world.actor_pos(panda.collider);
-            tiled_map.spr(
-               "tileset",
-               CHARACTER_SPRITE,
-               Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
-            )
+            draw_texture_ex(panda_texture,
+               pos.x, 
+               pos.y, 
+               WHITE,
+               DrawTextureParams {
+                  dest_size: Some(vec2(16.0, 16.0)),
+                  source: Some(Rect::new(
+                      0.0,
+                      0.0,
+                      32.0,
+                      32.0,
+                  )),
+                  ..Default::default()
+              });
+                           
+
+            // tiled_map.spr(
+            //    "tileset",
+            //    CHARACTER_SPRITE,
+            //    Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
+            // )
          }
       }
 
