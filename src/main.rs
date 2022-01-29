@@ -67,7 +67,7 @@ async fn main() {
       throw_cooldown: THROW_COOLDOWN
    };
 
-   
+   let mut total_bamboo = 100.0;
    let mut pandas = VecDeque::<Panda>::new();
 
    println!("w:{}, h:{}", screen_width(), screen_height());
@@ -83,6 +83,17 @@ async fn main() {
       set_camera(&camera);
 
       tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
+
+      let text = format!("Remaining Bamboo: {}", total_bamboo as i32);
+      draw_text_ex(
+         &text,
+         20.0,
+         20.0,
+         TextParams {
+             font_size: 20,
+             color: RED,
+             ..Default::default()
+         });
 
       // draw pandas
       {
@@ -244,6 +255,22 @@ async fn main() {
             pandas[index].mover = Box::new(NoMover{});
          }
       }  
+
+
+
+      // update bamboo count
+      {
+         if total_bamboo <= 0.0 {
+            total_bamboo = 0.0;
+         }
+         else {
+            let hungry_pandas = 
+               pandas.iter().by_ref().filter(|p| p.state == PandaState::Normal).count();
+
+            const HUNGER_RATE: f32 = 0.25;
+            total_bamboo -= hungry_pandas as f32 * (HUNGER_RATE * get_frame_time());
+         }
+      }
 
       next_frame().await
    }
