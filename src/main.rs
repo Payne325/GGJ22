@@ -46,10 +46,8 @@ async fn main() {
 
    let heart_texture = load_texture("assets/heart.png").await.unwrap();
 
-<<<<<<< HEAD
    /*
-=======
->>>>>>> f503ced00f7958db9eebf6348560d41e2e5b04a1
+
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
 
