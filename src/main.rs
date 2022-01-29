@@ -84,7 +84,7 @@ async fn main() {
    println!("w:{}, h:{}", screen_width(), screen_height());
 
    pandas.push(PandaFactory::CreatePanda(&mut world, vec2(170.0, 130.0), vec2(0., 50.)));
-   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(10.0, 10.0), vec2(0., 0.)));
+   pandas.push(PandaFactory::CreatePanda(&mut world, vec2(200.0, 10.0), vec2(0., 0.)));
    
    let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 400.0, 300.0));
 
