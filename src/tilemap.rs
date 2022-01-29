@@ -69,6 +69,7 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
 
       if read_map {
          width = 0;
+         loc.x = 0.0;
 
          let tileStrings: Vec<&str> = line.split(",").collect();
 
