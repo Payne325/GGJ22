@@ -21,6 +21,7 @@ enum PlayerState {
 struct Player {
    collider: Actor,
    speed: Vec2,
+   dir: Vec2,
    state: PlayerState,
    throw_cooldown: f32
 }
@@ -58,6 +59,7 @@ async fn main() {
    let mut player = Player {
       collider: world.add_actor(vec2(50.0, 80.0), 8, 8),
       speed: vec2(0., 0.),
+      dir: vec2(1.0, 0.0),
       state: PlayerState::Normal,
       throw_cooldown: THROW_COOLDOWN
    };
@@ -125,17 +127,32 @@ async fn main() {
          const PLAYER_X_SPEED: f32 = 100.0;
          const PLAYER_Y_SPEED: f32 = 75.0;
 
+         let mut changed_dir = false;
+         let mut new_dir = vec2(0.0, 0.0);
+
          if is_key_down(KeyCode::Right) {
             player.speed.x = PLAYER_X_SPEED;
+            new_dir.x = 1.0;
+            changed_dir = true;
          } else if is_key_down(KeyCode::Left) {
             player.speed.x = -PLAYER_X_SPEED;
+            new_dir.x = -1.0;
+            changed_dir = true;
          } 
          
          if is_key_down(KeyCode::Up) {
             player.speed.y = -PLAYER_Y_SPEED;
+            new_dir.y = -1.0;
+            changed_dir = true;
          } else if is_key_down(KeyCode::Down) {
             player.speed.y = PLAYER_Y_SPEED;
+            new_dir.y = 1.0;
+            changed_dir = true;
          } 
+
+         if (changed_dir) {
+            player.dir = new_dir;
+         }
          
          world.move_h(player.collider, player.speed.x * get_frame_time());
          world.move_v(player.collider, player.speed.y * get_frame_time());
@@ -146,15 +163,7 @@ async fn main() {
 
                   player.state = PlayerState::Throwing;
                   panda.state = PandaState::Thrown;
-
-                  let mut player_x_dir = if player.speed.x < 0.0 {-1.0 } else if player.speed.x > 0.0  { 1.0 } else { 0.0 };
-                  let player_y_dir = if player.speed.y < 0.0 {-1.0 } else if player.speed.y > 0.0  { 1.0 } else { 0.0 };
-
-                  if player_x_dir == player_y_dir && player_x_dir == 0.0 {
-                     player_x_dir = 1.0;
-                  }
-
-                  panda.mover = Box::new(ThrownMover::new(vec2(player_x_dir, player_y_dir)));
+                  panda.mover = Box::new(ThrownMover::new(player.dir));
             }
             else if player.state == PlayerState::Throwing {
                player.throw_cooldown -= get_frame_time();
@@ -190,7 +199,7 @@ async fn main() {
             let player_pos = world.actor_pos(player.collider);
             let panda_pos = world.actor_pos(panda.collider);
 
-            const GRAB_RANGE: f32 = 10.0;
+            const GRAB_RANGE: f32 = 20.0;
             if (player_pos.x - panda_pos.x).abs() < GRAB_RANGE
                && (player_pos.y - panda_pos.y).abs() < GRAB_RANGE
                && is_key_pressed(KeyCode::Space)
