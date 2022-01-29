@@ -4,6 +4,7 @@ use macroquad_platformer::*;
 
 pub trait Mover {
    fn apply_movement_routine(&mut self, world: &mut World, collider: &Actor, speed: &mut Vec2);
+   fn movement_complete(&self) -> bool;
 }
 
 pub struct BasicMover {
@@ -18,12 +19,16 @@ impl Mover for BasicMover {
 
       let pos = world.actor_pos(*collider);
 
-      if speed.y > 1. && pos.x >= 220. {
-         speed.y *= -1.;
+      if speed.x > 1. && pos.x >= 220. {
+         speed.x *= -1.;
       }
-      if speed.y < -1. && pos.x <= 150. {
-         speed.y *= -1.;
+      if speed.x < -1. && pos.x <= 150. {
+         speed.x *= -1.;
       }
+   }
+
+   fn movement_complete(&self) -> bool {
+      false
    }
 }
 
@@ -45,6 +50,10 @@ impl Mover for AltMover {
       if speed.y < -1. && pos.y <= 40. {
          speed.y *= -1.;
       }
+   }
+
+   fn movement_complete(&self) -> bool {
+      false
    }
 }
 
@@ -81,5 +90,9 @@ impl Mover for ThrownMover {
       let decay_rate = 1.0 - (time_delta).powf(2.0);
 
       self.throwing_speed *= decay_rate as f32;
+   }
+
+   fn movement_complete(&self) -> bool {
+      self.throwing_speed == 0.0
    }
 }
