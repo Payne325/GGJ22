@@ -9,4 +9,3 @@ edition = "2018"
 macroquad = "0.3"
 macroquad-tiled = { path = "./tiled" }
 macroquad-platformer = { path = "./physics-platformer" }
-kira = "0.5.3"

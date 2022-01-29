@@ -3,9 +3,7 @@ mod mover;
 use macroquad::prelude::*;
 use macroquad_platformer::*;
 use macroquad_tiled as tiled;
-use kira::manager::*;
-use kira::sound::*;
-use kira::instance::*;
+use macroquad::audio;
 
 use mover::{ThrownMover, NormalMover, Mover};
 
@@ -45,12 +43,16 @@ impl Panda {
    }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DrumFillEvent {
+    Start,
+    Finish,
+}
+
 #[macroquad::main("Platformer")]
 async fn main() {
-   let mut audio_manager = AudioManager::new(AudioManagerSettings::default()).unwrap();
-   let mut track1_handle = audio_manager.load_sound("assets/GGJ22_a2_loop.wav", SoundSettings::default()).unwrap();
-   let mut track1_instance = track1_handle.play(InstanceSettings::default().volume(0.05)).unwrap();
-
+   let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
+   audio::play_sound(track1, audio::PlaySoundParams{ looped: true, volume: 0.05});
 
    let tileset = load_texture("assets/tileset.png").await.unwrap();
    tileset.set_filter(FilterMode::Nearest);
