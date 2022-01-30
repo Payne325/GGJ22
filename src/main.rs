@@ -111,7 +111,6 @@ async fn main() {
 
     const PANDA_LOVING_COOLDOWN_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
-   //  /let mut panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
