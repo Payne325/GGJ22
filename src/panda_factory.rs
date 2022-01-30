@@ -19,6 +19,7 @@ pub struct Panda {
    pub heart_anim_index: f32,
    pub walk_anim_index: f32,
    pub love_anim_index: f32,
+   pub thrown_anim_index: f32,
    pub frame_countdown: f32
 }
 
@@ -30,10 +31,11 @@ impl Panda {
    }
 
    pub fn update_animation_indices(&mut self) {
-      self.frame_countdown = 0.05;
+      self.frame_countdown = 0.1;
       self.heart_anim_index += 1.0;
       self.walk_anim_index += 1.0;
       self.love_anim_index += 1.0;
+      self.thrown_anim_index += 1.0;
 
       if self.heart_anim_index == 4.0 {
          self.heart_anim_index = 0.0;
@@ -45,6 +47,10 @@ impl Panda {
 
       if self.love_anim_index == 9.0 {
          self.love_anim_index = 0.0;
+      }
+
+      if self.thrown_anim_index == 2.0 {
+         self.thrown_anim_index = 0.0;
       }
    }
 }
@@ -65,6 +71,7 @@ impl PandaFactory {
          heart_anim_index: 0.0,
          walk_anim_index: 0.0,
          love_anim_index: 0.0,
+         thrown_anim_index: 0.0,
          frame_countdown: 0.05,
       }
    }
