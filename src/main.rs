@@ -110,7 +110,7 @@ async fn main() {
     let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
-    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 6.0;
+    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
     let mut num_of_pandas_to_spawn_from_couples = 0;
     let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
