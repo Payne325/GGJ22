@@ -15,6 +15,7 @@ pub struct Stork {
    pub speed: Vec2,
 
    pub frame_countdown: f32,
+   pub frame_time: f32,
    pub anim_index: f32
 
 }
@@ -34,13 +35,19 @@ impl Stork {
       }
    }
 
-   pub fn update_animation_indices(&mut self) {
-      self.frame_countdown = 0.1;
-      self.anim_index += 1.0;
+   pub fn update_animation(&mut self, dt: f32) {
+      self.frame_countdown += dt;
 
-      if self.anim_index == 3.0 {
-         self.anim_index = 0.0;
+      if self.frame_countdown > self.frame_time {
+         self.anim_index += 1.0;
+         self.frame_countdown = 0.0;
+
+         if self.anim_index == 3.0 {
+            self.anim_index = 0.0;
+         }
       }
+
+
    }
 }
 
@@ -54,12 +61,12 @@ impl StorkFactory {
       let mut pos = Vec2::new(0.0, dest.y);
       let mut speed = Vec2::new(0.0, 0.0);
       
-      if (dest.x < screen_width() * 0.5) {
-         pos.x = -32.0;
-         speed.x = 8.0;
+      if dest.x < screen_width() * 0.5 {
+         pos.x = -64.0;
+         speed.x = 64.0;
       } else {
-         pos.x = screen_width() + 32.0;
-         speed.x = -8.0;
+         pos.x = screen_width() + 64.0;
+         speed.x = -64.0;
       }
 
       Stork {
@@ -69,6 +76,7 @@ impl StorkFactory {
          speed: speed,
 
          frame_countdown: 0.0,
+         frame_time: 0.2,
          anim_index: 0.0
       }
    }
