@@ -52,8 +52,8 @@ fn conf() -> Conf {
 async fn main() {
     let mut player_score = 0;
 
-    let track1 = audio::load_sound("assets/GGJ22_b3_loop.wav").await.unwrap();
-    // play(&track1, true); //TODO: re-enable music
+    let track1 = audio::load_sound("assets/Panda Dating Simulator - Turbo Arcade Edition Loop (127bpm).wav").await.unwrap();
+    play(&track1, true); //TODO: re-enable music
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
