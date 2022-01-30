@@ -75,9 +75,11 @@ impl PandaFactory {
    
       let speed_x = rand::gen_range(0.0, 50.0);
       let speed_y = rand::gen_range(0.0, 50.0);
+
+      let rounded_pos = Vec2::new(pos.x.round(), pos.y.round());
       
       Panda {
-         collider: world.add_actor(pos, 16, 16),
+         collider: world.add_actor(rounded_pos, 16, 16),
          speed: vec2(speed_x, speed_y),
          mover: Box::new(NormalMover::new()),
          state: PandaState::Normal,
