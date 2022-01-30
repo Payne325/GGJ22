@@ -63,8 +63,10 @@ fn remove_bamboo(
 ) {
     *bamboo_collection -= bamboo_to_remove;
 
-    for _ in 0..bamboo_to_remove as usize {
-        bamboo_points.pop();
+    let diff = (*bamboo_collection - bamboo_points.len() as f32).round();
+
+    if diff < 0f32 {
+        bamboo_points.drain(0..diff.abs() as usize);
     }
 }
 
@@ -78,7 +80,7 @@ async fn main() {
             .await
             .unwrap();
 
-    play(&track1, true, 0.4); 
+    play(&track1, true, 0.4);
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
@@ -549,7 +551,9 @@ async fn main() {
 
                 const HUNGER_RATE: f32 = 0.25;
                 let eaten_bamboo = hungry_pandas as f32 * (HUNGER_RATE * delta_time);
-                remove_bamboo(&mut total_bamboo, eaten_bamboo, &mut bamboo_points)
+                remove_bamboo(&mut total_bamboo, eaten_bamboo, &mut bamboo_points);
+
+                total_bamboo -= eaten_bamboo;
             }
 
             const BAMBOO_REFRESH_TIME_SECONDS: f32 = 10.0;
