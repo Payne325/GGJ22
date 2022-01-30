@@ -7,6 +7,7 @@ use macroquad::audio::Sound;
 use macroquad::audio::{self};
 use macroquad::prelude::*;
 use macroquad_platformer::*;
+use macroquad::ui::{hash, root_ui, widgets::Window};
 // use macroquad_tiled as tiled;
 
 use mover::*;
@@ -231,6 +232,21 @@ async fn main() {
                         },
                     );
                 }
+            }
+        }
+
+        // handle not enough pandas for early exit
+        {
+         let alive_pandas = pandas
+            .iter()
+            .by_ref()
+            .filter(|p| p.state != PandaState::Dead)
+            .count();
+
+            if alive_pandas <= 1 {
+              if game_over(false) {
+                return;
+              }
             }
         }
 
@@ -493,7 +509,10 @@ async fn main() {
         {
             if total_bamboo <= 0.0 {
                 total_bamboo = 0.0; 
-                // TODO: GAME OVER
+                
+                if game_over(true) {
+                   return;
+                }
             } else {
                 let hungry_pandas = pandas
                     .iter()
@@ -601,13 +620,37 @@ async fn main() {
     }
 }
 
+fn game_over(ran_out_of_bamboo: bool) -> bool {
+   let msg = if ran_out_of_bamboo {
+      "You ran out of Bamboo and the Pandas shall perish!"
+   }
+   else {
+      "You ran out of Pandas and the Bamboo shall conquer the Earth!"
+   };
+
+   let dialog_size = vec2(440., 100.);
+   let screen_size = vec2(screen_width(), screen_height());
+   let dialog_position = screen_size / 2. - dialog_size / 2.;
+   let mut user_response = false;
+   Window::new(hash!(), dialog_position, dialog_size).ui(&mut *root_ui(), |ui| {
+       ui.label(None, &msg);
+       ui.separator();
+       ui.same_line(480.);
+       if ui.button(None, "Goodbye") {
+         user_response = true;
+       }
+    });
+
+   user_response
+}
+
 fn play(sound: &Sound, looped: bool) {
     // println!("Playing: {:?}", sound);
     audio::play_sound(
         *sound,
         audio::PlaySoundParams {
             looped,
-            volume: 0.9,
+            volume: 0.2,
         },
     );
 }
