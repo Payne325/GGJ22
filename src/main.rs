@@ -102,10 +102,10 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
-    let mut num_of_pandas_to_spawn_from_couples = 0;
-    let mut panda_spawn_countdown = 4.0;
-    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
+    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
+    let mut num_of_pandas_to_spawn_from_couples = 0;
+    let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
