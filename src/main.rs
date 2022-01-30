@@ -125,7 +125,7 @@ async fn main() {
            panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
            pandas.push(PandaFactory::create_panda(&mut world));
         }
-        
+
         // draw pandas
         {
             for panda in &pandas {
@@ -396,7 +396,12 @@ async fn main() {
                p.state = PandaState::ReadyForDeletion;
             }
          }
+
+         // then remove them
+         pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
         }
+
+
 
         // update bamboo count
         {
