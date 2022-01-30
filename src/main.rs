@@ -48,14 +48,24 @@ fn conf() -> Conf {
     }
 }
 
-fn add_bamboo(bamboo_collection: &mut f32, bamboo_to_add: f32) {
+fn add_bamboo(bamboo_collection: &mut f32, bamboo_to_add: f32, bamboo_points: &mut Vec<Vec2>) {
+    *bamboo_collection += bamboo_to_add;
 
-   *bamboo_collection += bamboo_to_add;
+    for _ in 0..bamboo_to_add as usize {
+        bamboo_points.push(get_random_game_point());
+    }
 }
 
-fn remove_bamboo(bamboo_collection: &mut f32, bamboo_to_remove: f32) {
+fn remove_bamboo(
+    bamboo_collection: &mut f32,
+    bamboo_to_remove: f32,
+    bamboo_points: &mut Vec<Vec2>,
+) {
+    *bamboo_collection -= bamboo_to_remove;
 
-   *bamboo_collection -= bamboo_to_remove;
+    for _ in 0..bamboo_to_remove as usize {
+        bamboo_points.pop();
+    }
 }
 
 #[macroquad::main(conf)]
@@ -101,6 +111,13 @@ async fn main() {
 
     let heart_texture = load_texture("assets/heart.png").await.unwrap();
 
+    let mut total_bamboo = 100.0;
+    let bamboo_texture = load_texture("assets/bamboo.png").await.unwrap();
+    let mut bamboo_points = Vec::new();
+    for _ in 0..total_bamboo as usize {
+        bamboo_points.push(get_random_game_point());
+    }
+
     let material =
         load_material(CRT_VERTEX_SHADER, CRT_FRAGMENT_SHADER, Default::default()).unwrap();
     let mut world = World::new();
@@ -117,7 +134,6 @@ async fn main() {
         frame_countdown: 0.05,
     };
 
-    let mut total_bamboo = 100.0;
     let mut pandas = Vector::<Panda>::new();
     let mut storks = Vector::<Stork>::new();
 
@@ -147,6 +163,18 @@ async fn main() {
 
         // draw map
         tilemap.draw();
+
+        for bam in &bamboo_points {
+            draw_texture_ex(
+                bamboo_texture,
+                bam.x,
+                bam.y,
+                WHITE,
+                DrawTextureParams {
+                    ..Default::default()
+                },
+            );
+        }
 
         //   panda_spawn_countdown -= delta_time;
 
@@ -509,7 +537,7 @@ async fn main() {
         // update bamboo count
         {
             if total_bamboo <= 0.0 {
-                total_bamboo = 0.0; 
+                total_bamboo = 0.0;
                 // TODO: GAME OVER
             } else {
                 let hungry_pandas = pandas
@@ -520,14 +548,14 @@ async fn main() {
 
                 const HUNGER_RATE: f32 = 0.25;
                 let eaten_bamboo = hungry_pandas as f32 * (HUNGER_RATE * delta_time);
-                remove_bamboo(&mut total_bamboo, eaten_bamboo)
+                remove_bamboo(&mut total_bamboo, eaten_bamboo, &mut bamboo_points)
             }
 
             const BAMBOO_REFRESH_TIME_SECONDS: f32 = 10.0;
             const BAMBOO_TO_ADD: f32 = 10.0;
             if elapsed_time > BAMBOO_REFRESH_TIME_SECONDS {
-               elapsed_time = 0.0;
-               add_bamboo(&mut total_bamboo, BAMBOO_TO_ADD)
+                elapsed_time = 0.0;
+                add_bamboo(&mut total_bamboo, BAMBOO_TO_ADD, &mut bamboo_points)
             }
         }
 
@@ -618,6 +646,12 @@ async fn main() {
 
         next_frame().await
     }
+}
+
+fn get_random_game_point() -> Vec2 {
+    let x: f32 = macroquad::rand::gen_range(16.0, 480.0 - 32.0 - 16.0);
+    let y: f32 = macroquad::rand::gen_range(16.0, 270.0 - 16.0 - 16.0);
+    vec2(x.floor(), y.floor())
 }
 
 fn play(sound: &Sound, looped: bool) {
