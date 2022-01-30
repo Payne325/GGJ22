@@ -109,9 +109,9 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, map_screen_width, 1080.0 / 4.0));
     let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
-    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
+    const PANDA_LOVING_COOLDOWN_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
-    let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
+   //  /let mut panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
@@ -126,12 +126,12 @@ async fn main() {
         // draw map
         tilemap.draw();
 
-        panda_spawn_countdown -= delta_time;
+      //   panda_spawn_countdown -= delta_time;
 
-        if panda_spawn_countdown <= 0.0 {
-           panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
-           pandas.push(PandaFactory::create_panda(&mut world));
-        }
+      //   if panda_spawn_countdown <= 0.0 {
+      //      panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
+      //      pandas.push(PandaFactory::create_panda(&mut world));
+      //   }
 
         is_love_making = false;
 
@@ -346,19 +346,30 @@ async fn main() {
                         let player_pos = world.actor_pos(player.collider);
                         world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
                     }
-                } else if panda.state == PandaState::FoundLove {
-                    panda.apply_movement(&mut world);
+                } 
+                else if panda.state == PandaState::FoundLove {
+                  panda.apply_movement(&mut world);
 
-                    if panda.mover.movement_complete() {
-                        panda.state = PandaState::Dead;
-                    }
-                } else {
+                  if panda.mover.movement_complete() {
+                      panda.state = PandaState::Normal;
+                      panda.mover = Box::new(NormalMover::new());
+                      
+                      let speed_x = rand::gen_range(0.0, 50.0);
+                      let speed_y = rand::gen_range(0.0, 50.0);
+                      panda.speed = vec2(speed_x, speed_y);
+                      panda.sweet_panda_loving_cooldown = PANDA_LOVING_COOLDOWN_SECONDS;
+                  }
+                }
+                else {
                     panda.apply_movement(&mut world);
 
                     if panda.mover.movement_complete() {
                         panda.state = PandaState::Normal;
                         panda.mover = Box::new(NormalMover::new());
-                        panda.speed = vec2(50., 0.);
+                        
+                        let speed_x = rand::gen_range(0.0, 50.0);
+                        let speed_y = rand::gen_range(0.0, 50.0);
+                        panda.speed = vec2(speed_x, speed_y);
                     }
                 }
             }
@@ -409,7 +420,8 @@ async fn main() {
                 let first_panda = &pandas[first_panda_index];    
 
                 if first_panda.state != PandaState::Normal ||
-                  in_love_indices.contains(&first_panda_index) {
+                  in_love_indices.contains(&first_panda_index) ||
+                  first_panda.sweet_panda_loving_cooldown > 0.0 {
                     continue;
                 }
 
@@ -419,7 +431,8 @@ async fn main() {
                     let second_panda = &pandas[second_panda_index];
 
                     if second_panda.state != PandaState::Normal ||
-                        in_love_indices.contains(&second_panda_index){
+                        in_love_indices.contains(&second_panda_index) ||
+                        second_panda.sweet_panda_loving_cooldown > 0.0 {
                         continue;
                     }
 
@@ -481,10 +494,16 @@ async fn main() {
             }
         }
 
-        // update animation count
+        // update animation count and lovin-cooldown
         {
             for p in pandas.iter_mut() {
-                p.frame_countdown -= delta_time;
+               p.sweet_panda_loving_cooldown -= delta_time;
+
+               if p.sweet_panda_loving_cooldown  < 0.0 {
+                  p.sweet_panda_loving_cooldown = 0.0;
+               }
+
+               p.frame_countdown -= delta_time;
 
                 if p.frame_countdown <= 0.0 {
                     p.update_animation_indices();
