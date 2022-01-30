@@ -108,10 +108,10 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
-    let mut num_of_pandas_to_spawn_from_couples = 0;
-    let mut panda_spawn_countdown = 4.0;
-    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
+    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
+    let mut num_of_pandas_to_spawn_from_couples = 0;
+    let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
@@ -134,8 +134,12 @@ async fn main() {
         }
 
         if num_of_pandas_to_spawn_from_couples > 0 {
+
+            //println!("Generating {} Pandas", num_of_pandas_to_spawn_from_couples);
             for _ in 0..num_of_pandas_to_spawn_from_couples {
                pandas.push(PandaFactory::create_panda(&mut world));
+               //let i = pandas.len() -1;
+               //println!("Created at: {}, speed {}", world.actor_pos(pandas[i].collider), pandas[i].speed);
             }
 
             num_of_pandas_to_spawn_from_couples = 0;
@@ -146,6 +150,10 @@ async fn main() {
         // draw pandas
         {
             for panda in &pandas {
+               if panda.state == PandaState::ReadyForDeletion {
+                  continue;
+               }
+
                 let pos = world.actor_pos(panda.collider);
 
                 if panda.state == PandaState::Thrown {
@@ -378,6 +386,11 @@ async fn main() {
         {
             // detect player grabbing pandas
             for panda in &mut pandas {
+
+                if panda.state != PandaState::Normal {
+                   continue;
+                }
+
                 let player_pos = world.actor_pos(player.collider);
                 let panda_pos = world.actor_pos(panda.collider);
 
@@ -396,18 +409,24 @@ async fn main() {
 
             // detect pandas finding other pandas
             let mut in_love_indices = Vector::<usize>::new();
+            
             let num_of_pandas = pandas.len();
-            for first_panda_index in 0..num_of_pandas {
-                let first_panda = &pandas[first_panda_index];
-                if first_panda.state != PandaState::Normal {
+            for first_panda_index in 0..(num_of_pandas - 1) {
+               
+                let first_panda = &pandas[first_panda_index];    
+
+                if first_panda.state != PandaState::Normal ||
+                  in_love_indices.contains(&first_panda_index) {
                     continue;
                 }
 
                 let first_panda_pos = world.actor_pos(first_panda.collider);
 
-                for second_panda_index in first_panda_index + 1..num_of_pandas {
+                for second_panda_index in (first_panda_index + 1)..num_of_pandas {
                     let second_panda = &pandas[second_panda_index];
-                    if second_panda.state != PandaState::Normal {
+
+                    if second_panda.state != PandaState::Normal ||
+                        in_love_indices.contains(&second_panda_index){
                         continue;
                     }
 
@@ -426,6 +445,7 @@ async fn main() {
 
                         // queue creation of new panda
                         num_of_pandas_to_spawn_from_couples += 1;
+                        break;
                     }
                 }
             }
