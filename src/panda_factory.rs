@@ -64,7 +64,7 @@ pub struct PandaFactory {
 impl PandaFactory {
    pub fn create_panda(world: &mut World) -> Panda {
       
-      let spawn_points = vec![vec2(170.0, 230.0), vec2(200.0, 100.0), vec2(350.0, 170.0), vec2(100.0, 350.0)];
+      let spawn_points = vec![vec2(170.0, 230.0), vec2(200.0, 100.0), vec2(230.0, 170.0), vec2(100.0, 200.0)];
       let spawn_index = rand::gen_range(0, spawn_points.len()) as usize;
    
       let speed_x = rand::gen_range(0.0, 50.0);
