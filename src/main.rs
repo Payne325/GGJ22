@@ -39,7 +39,7 @@ pub enum DrumFillEvent {
 #[macroquad::main("Platformer")]
 async fn main() {
     let track1 = audio::load_sound("assets/GGJ22_b3_loop.wav").await.unwrap();
-    play(&track1, true);
+    // play(&track1, true); //TODO: re-enable music
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
@@ -88,7 +88,8 @@ async fn main() {
 
     const THROW_COOLDOWN: f32 = 2.0;
     let mut player = Player {
-        collider: world.add_actor(vec2(32.0, 150.0), 32, 32),
+        // collider: world.add_actor(vec2(32.0, 150.0), 32, 32),
+        collider: world.add_actor(vec2(32.0, 150.0), 10, 10),
         speed: 100.0,
         dir: vec2(0.0, 0.0),
         state: PlayerState::Normal,
@@ -133,8 +134,8 @@ async fn main() {
                 if panda.state == PandaState::Thrown {
                     draw_texture_ex(
                         panda_thrown_texture,
-                        pos.x,
-                        pos.y,
+                        pos.x - 5.0,
+                        pos.y - 15.0,
                         WHITE,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
@@ -142,11 +143,32 @@ async fn main() {
                             ..Default::default()
                         },
                     );
+                } else if panda.state == PandaState::Grabbed {
+                    let ms = macroquad::time::get_time() * 1000.0;
+                    if ms as u64 % 2 == 0 {
+                        draw_texture_ex(
+                            panda_walking_texture,
+                            pos.x - 14.0,
+                            pos.y - 30.0,
+                            WHITE,
+                            DrawTextureParams {
+                                dest_size: Some(vec2(32.0, 32.0)),
+                                source: Some(Rect::new(
+                                    32.0 * panda.walk_anim_index,
+                                    0.0,
+                                    32.0,
+                                    32.0,
+                                )),
+                                rotation: 0.5 * 3.14,
+                                ..Default::default()
+                            },
+                        );
+                    }
                 } else if panda.state == PandaState::FoundLove {
                     draw_texture_ex(
                         panda_love_texture,
-                        pos.x,
-                        pos.y,
+                        pos.x - 12.0,
+                        pos.y - 15.0,
                         WHITE,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
@@ -157,8 +179,8 @@ async fn main() {
 
                     draw_texture_ex(
                         heart_texture,
-                        pos.x,
-                        pos.y - 8.0,
+                        pos.x - 8.0,
+                        pos.y - 25.0,
                         WHITE,
                         DrawTextureParams {
                             dest_size: Some(vec2(16.0, 16.0)),
@@ -169,8 +191,8 @@ async fn main() {
                 } else {
                     draw_texture_ex(
                         panda_walking_texture,
-                        pos.x,
-                        pos.y,
+                        pos.x - 12.0,
+                        pos.y - 15.0,
                         WHITE,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
@@ -193,8 +215,8 @@ async fn main() {
             };
             draw_texture_ex(
                 texture,
-                pos.x,
-                pos.y,
+                pos.x - 12.0,
+                pos.y - 15.0,
                 WHITE,
                 DrawTextureParams {
                     dest_size: Some(vec2(32.0, 32.0)),
