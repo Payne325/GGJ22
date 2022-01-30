@@ -72,6 +72,9 @@ async fn main() {
 
     let heart_texture = load_texture("assets/heart.png").await.unwrap();
 
+    let material =
+        load_material(CRT_VERTEX_SHADER, CRT_FRAGMENT_SHADER, Default::default()).unwrap();
+
     /*
 
     let tileset = load_texture("assets/tileset.png").await.unwrap();
@@ -444,6 +447,7 @@ async fn main() {
         set_default_camera();
         clear_background(GREEN);
         render_target.texture.set_filter(FilterMode::Nearest);
+        gl_use_material(material);
         draw_texture_ex(
             render_target.texture,
             0.,
@@ -455,9 +459,9 @@ async fn main() {
                 ..Default::default()
             },
         );
-
+        gl_use_default_material();
+        
         let text = format!("Remaining Bamboo: {}", total_bamboo as i32);
-
         draw_text_ex(
             &text,
             20.0,
@@ -470,6 +474,7 @@ async fn main() {
             },
         );
 
+
         next_frame().await
     }
 }
@@ -480,7 +485,77 @@ fn play(sound: &Sound, looped: bool) {
         *sound,
         audio::PlaySoundParams {
             looped,
-            volume: 0.5,
+            volume: 0.9,
         },
     );
 }
+
+const CRT_FRAGMENT_SHADER: &'static str = r#"#version 100
+precision lowp float;
+
+varying vec4 color;
+varying vec2 uv;
+    
+uniform sampler2D Texture;
+
+// https://www.shadertoy.com/view/XtlSD7
+
+vec2 CRTCurveUV(vec2 uv)
+{
+    uv = uv * 2.0 - 1.0;
+    vec2 offset = abs( uv.yx ) / vec2( 12.0, 4.0 );
+    uv = uv + uv * offset * offset;
+    uv = uv * 0.5 + 0.5;
+    return uv;
+}
+
+void DrawVignette( inout vec3 color, vec2 uv )
+{    
+    float vignette = uv.x * uv.y * ( 1.0 - uv.x ) * ( 1.0 - uv.y );
+    vignette = clamp( pow( 50.0 * vignette, 0.2 ), 0.0, 1.0 );
+    color *= vignette * 1.0;
+}
+
+
+void DrawScanline( inout vec3 color, vec2 uv )
+{
+    float iTime = 0.9;
+    float scanline 	= clamp( 0.95 + 0.05 * cos( 3.14 * ( uv.y + 0.008 * iTime ) * 1080.0 * 0.4 ), 0.0, 1.0 );
+    float grille 	= 1.0 + 0.15 * clamp( 1.0 * cos( 3.14159265359 * uv.x * 1920.0 * 0.4 ), 0.2, 1.0 );    
+    color *= scanline * grille * 1.1;
+}
+
+void main() {
+    
+    vec2 crtUV = CRTCurveUV(uv);
+    
+    vec3 res = texture2D(Texture, uv).rgb * color.rgb;
+ 	
+    if (crtUV.x < 0.0 || crtUV.x > 1.0 || crtUV.y < 0.0 || crtUV.y > 1.0)
+    {
+        res = vec3(0.0, 0.0, 0.0);
+    } 
+    DrawVignette(res, crtUV);
+    DrawScanline(res, uv);
+    gl_FragColor = vec4(res, 1.0);
+
+}
+"#;
+
+const CRT_VERTEX_SHADER: &'static str = "#version 100
+attribute vec3 position;
+attribute vec2 texcoord;
+attribute vec4 color0;
+
+varying lowp vec2 uv;
+varying lowp vec4 color;
+
+uniform mat4 Model;
+uniform mat4 Projection;
+
+void main() {
+    gl_Position = Projection * Model * vec4(position, 1);
+    color = color0 / 255.0;
+    uv = texcoord;
+}
+";
