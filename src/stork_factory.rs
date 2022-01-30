@@ -57,15 +57,16 @@ pub struct StorkFactory {
 }
 
 impl StorkFactory {
-   pub fn create_stork(dest: Vec2) -> Stork {
+   pub fn create_stork(dest: Vec2, screen_width: f32) -> Stork {
+
       let mut pos = Vec2::new(0.0, dest.y);
       let mut speed = Vec2::new(0.0, 0.0);
       
-      if dest.x < screen_width() * 0.5 {
+      if dest.x < screen_width * 0.5 {
          pos.x = -64.0;
          speed.x = 64.0;
       } else {
-         pos.x = screen_width() + 64.0;
+         pos.x = screen_width + 64.0;
          speed.x = -64.0;
       }
 
