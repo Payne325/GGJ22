@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use macroquad_platformer::*;
-use macroquad_tiled as tiled;
+// use macroquad_tiled as tiled;
 use std::fs;
 
 pub struct TileData {
@@ -26,15 +26,15 @@ impl TileData {
 
 
 pub struct TileMap {
-   pub tileTextures: Vec<Texture2D>,
+   pub tile_textures: Vec<Texture2D>,
    pub map: Vec<TileData>,
-   pub collisionMap: Vec<bool>
+   pub collision_map: Vec<bool>
 }
 
 impl TileMap {
    pub fn draw(&mut self) {
       for tile in &mut self.map {
-         tile.draw(&self.tileTextures[tile.texture_index]);
+         tile.draw(&self.tile_textures[tile.texture_index]);
       }
    }
 
@@ -42,7 +42,7 @@ impl TileMap {
 
 
 pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
-   let mut tilemap = TileMap { tileTextures: Vec::new(), map: Vec::new(), collisionMap: Vec::new() };
+   let mut tilemap = TileMap { tile_textures: Vec::new(), map: Vec::new(), collision_map: Vec::new() };
 
    let file = fs::read_to_string(path).expect("Something went wrong reading the file");
    let lines = file.lines();
@@ -77,7 +77,7 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
             let index = string.trim().parse().unwrap();
 
             let t = TileData { 
-               collider: tilemap.collisionMap[index],
+               collider: tilemap.collision_map[index],
                pos: loc,
                size: size,
                texture_index: index
@@ -93,12 +93,12 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
 
       } else if read_tile {
          let tile_strings: Vec<&str> = line.split(",").collect();
-         tilemap.tileTextures.push(load_texture(tile_strings[0]).await.unwrap());
+         tilemap.tile_textures.push(load_texture(tile_strings[0]).await.unwrap());
 
          if tile_strings[2].contains("true") {
-            tilemap.collisionMap.push(true);
+            tilemap.collision_map.push(true);
          } else {
-            tilemap.collisionMap.push(false);
+            tilemap.collision_map.push(false);
          }
       }
 

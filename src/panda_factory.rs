@@ -55,7 +55,7 @@ pub struct PandaFactory {
 }
 
 impl PandaFactory {
-   pub fn CreatePanda(world: &mut World, pos: Vec2, init_speed: Vec2) -> Panda {
+   pub fn create_panda(world: &mut World, pos: Vec2, init_speed: Vec2) -> Panda {
       Panda {
          collider: world.add_actor(pos, 32, 32),
          speed: init_speed,

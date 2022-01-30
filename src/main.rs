@@ -3,10 +3,10 @@ mod panda_factory;
 mod tilemap;
 
 use macroquad::audio::Sound;
-use macroquad::audio::{self, play_sound};
+use macroquad::audio::{self};
 use macroquad::prelude::*;
 use macroquad_platformer::*;
-use macroquad_tiled as tiled;
+// use macroquad_tiled as tiled;
 
 use mover::*;
 use panda_factory::*;
@@ -102,12 +102,12 @@ async fn main() {
 
     println!("w:{}, h:{}", screen_width(), screen_height());
 
-    pandas.push(PandaFactory::CreatePanda(
+    pandas.push(PandaFactory::create_panda(
         &mut world,
         vec2(170.0, 230.0),
         vec2(0., 50.),
     ));
-    pandas.push(PandaFactory::CreatePanda(
+    pandas.push(PandaFactory::create_panda(
         &mut world,
         vec2(200.0, 100.0),
         vec2(0., 0.),
