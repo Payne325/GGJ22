@@ -102,7 +102,8 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
-    let mut panda_spawn_countdown = 10.0;
+    let mut num_of_pandas_to_spawn_from_couples = 0;
+    let mut panda_spawn_countdown = 4.0;
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
 
@@ -125,6 +126,14 @@ async fn main() {
            panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
            pandas.push(PandaFactory::create_panda(&mut world));
         }
+
+        if num_of_pandas_to_spawn_from_couples > 0 {
+            for _ in 0..num_of_pandas_to_spawn_from_couples {
+               pandas.push(PandaFactory::create_panda(&mut world));
+            }
+
+            num_of_pandas_to_spawn_from_couples = 0;
+         }
 
         // draw pandas
         {
@@ -366,6 +375,9 @@ async fn main() {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
                         player_score += 50;
+
+                        // queue creation of new panda
+                        num_of_pandas_to_spawn_from_couples += 1;
                     }
                 }
             }
