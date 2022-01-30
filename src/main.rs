@@ -1,5 +1,6 @@
 mod mover;
 mod panda_factory;
+mod stork_factory;
 mod tilemap;
 
 use macroquad::audio::Sound;
@@ -10,6 +11,7 @@ use macroquad_platformer::*;
 
 use mover::*;
 use panda_factory::*;
+use stork_factory::*;
 
 use std::vec::Vec as Vector;
 
@@ -66,6 +68,9 @@ async fn main() {
     let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
     let panda_love_texture = load_texture("assets/dancing_panda.png").await.unwrap();
 
+    let stork_loaded_texture = load_texture("assets/stork_loaded.png").await.unwrap();
+    let stork_unloaded_texture = load_texture("assets/stork_unloaded.png").await.unwrap();
+
     let player_walking_texture = load_texture("assets/walking_cupid_panda.png")
         .await
         .unwrap();
@@ -93,6 +98,7 @@ async fn main() {
 
     let mut total_bamboo = 100.0;
     let mut pandas = Vector::<Panda>::new();
+    let mut storks = Vector::<Stork>::new();
 
     println!("w:{}, h:{}", screen_width(), screen_height());
 
@@ -102,10 +108,10 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
-    let mut num_of_pandas_to_spawn_from_couples = 0;
-    let mut panda_spawn_countdown = 4.0;
-    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
+    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
+    let mut num_of_pandas_to_spawn_from_couples = 0;
+    let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
@@ -221,6 +227,37 @@ async fn main() {
             }
         }
 
+        // draw storks
+        {
+            for stork in &mut storks {
+                if stork.state == StorkState::Loaded {
+                    draw_texture_ex(
+                        stork_loaded_texture,
+                        stork.pos.x,
+                        stork.pos.y,
+                        WHITE,
+                        DrawTextureParams {
+                            dest_size: Some(vec2(32.0, 32.0)),
+                            source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
+                            ..Default::default()
+                        },
+                    );
+                } else {
+                    draw_texture_ex(
+                        stork_unloaded_texture,
+                        stork.pos.x,
+                        stork.pos.y,
+                        WHITE,
+                        DrawTextureParams {
+                            dest_size: Some(vec2(32.0, 32.0)),
+                            source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
+                            ..Default::default()
+                        },
+                    );
+                }
+            }
+        }
+
         // draw player
         {
             // sprite id from tiled
@@ -329,6 +366,14 @@ async fn main() {
             }
         }
 
+        // move storks
+        {
+            for stork in &mut storks {
+                stork.apply_movement(get_frame_time());
+                stork.update_animation(get_frame_time());
+            }
+        }
+
         // collision detection
         {
             // detect player grabbing pandas
@@ -376,6 +421,7 @@ async fn main() {
                     if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
+                        storks.push(StorkFactory::create_stork(first_panda_pos));
                         player_score += 50;
 
                         // queue creation of new panda
