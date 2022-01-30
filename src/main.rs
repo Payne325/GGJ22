@@ -48,11 +48,25 @@ fn conf() -> Conf {
     }
 }
 
+fn add_bamboo(bamboo_collection: &mut f32, bamboo_to_add: f32) {
+
+   *bamboo_collection += bamboo_to_add;
+}
+
+fn remove_bamboo(bamboo_collection: &mut f32, bamboo_to_remove: f32) {
+
+   *bamboo_collection -= bamboo_to_remove;
+}
+
 #[macroquad::main(conf)]
 async fn main() {
     let mut player_score = 0;
+    let mut elapsed_time = 0.0;
 
-    let track1 = audio::load_sound("assets/Panda Dating Simulator - Turbo Arcade Edition Loop (127bpm).wav").await.unwrap();
+    let track1 =
+        audio::load_sound("assets/Panda Dating Simulator - Turbo Arcade Edition Loop (127bpm).wav")
+            .await
+            .unwrap();
     play(&track1, true); //TODO: re-enable music
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
@@ -64,9 +78,16 @@ async fn main() {
 
     let font = load_ttf_font("./assets/Gameplay.ttf").await.unwrap();
 
-    let panda_walking_texture = load_texture("assets/walking_panda-export2.png").await.unwrap();
-    let panda_thrown_texture = load_texture("assets/thrown_panda-export2.png").await.unwrap();
-    let panda_love_texture = load_texture("assets/dancing_panda-export2.png").await.unwrap();
+    let panda_walking_texture = load_texture("assets/walking_panda-export2.png")
+        .await
+        .unwrap();
+    let panda_thrown_texture = load_texture("assets/thrown_panda-export2.png")
+        .await
+        .unwrap();
+    let panda_love_texture = load_texture("assets/dancing_panda-export2.png")
+        .await
+        .unwrap();
+    let panda_dead_texture = load_texture("assets/dead_panda.png").await.unwrap();
 
     let stork_loaded_texture = load_texture("assets/stork_loaded.png").await.unwrap();
     let stork_unloaded_texture = load_texture("assets/stork_unloaded.png").await.unwrap();
@@ -106,12 +127,12 @@ async fn main() {
     pandas.push(PandaFactory::create_panda(&mut world));
 
     let map_screen_width = 1920.0 / 4.0;
-    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, map_screen_width, 1080.0 / 4.0));
+    let mut camera =
+        Camera2D::from_display_rect(Rect::new(0.0, 15.0, map_screen_width, 1080.0 / 4.0));
     let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
     const PANDA_LOVING_COOLDOWN_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
-   //  /let mut panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
 
     loop {
         if is_key_down(KeyCode::Escape) {
@@ -119,6 +140,7 @@ async fn main() {
         }
 
         let delta_time = get_frame_time();
+        elapsed_time += delta_time;
 
         camera.render_target = Some(render_target);
         set_camera(&camera);
@@ -126,23 +148,31 @@ async fn main() {
         // draw map
         tilemap.draw();
 
-      //   panda_spawn_countdown -= delta_time;
+        //   panda_spawn_countdown -= delta_time;
 
-      //   if panda_spawn_countdown <= 0.0 {
-      //      panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
-      //      pandas.push(PandaFactory::create_panda(&mut world));
-      //   }
+        //   if panda_spawn_countdown <= 0.0 {
+        //      panda_spawn_countdown = PANDA_LOVING_COOLDOWN_SECONDS;
+        //      pandas.push(PandaFactory::create_panda(&mut world));
+        //   }
 
         is_love_making = false;
 
         // draw pandas
         {
             for panda in &pandas {
-               if panda.state == PandaState::Dead {
-                  continue;
-               }
-
                 let pos = world.actor_pos(panda.collider);
+                if panda.state == PandaState::Dead {
+                    draw_texture_ex(
+                        panda_dead_texture,
+                        pos.x - 12.0,
+                        pos.y - 15.0,
+                        WHITE,
+                        DrawTextureParams {
+                            ..Default::default()
+                        },
+                    );
+                    continue;
+                }
 
                 if panda.state == PandaState::Thrown {
                     draw_texture_ex(
@@ -346,27 +376,25 @@ async fn main() {
                         let player_pos = world.actor_pos(player.collider);
                         world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
                     }
-                } 
-                else if panda.state == PandaState::FoundLove {
-                  panda.apply_movement(&mut world);
-
-                  if panda.mover.movement_complete() {
-                      panda.state = PandaState::Normal;
-                      panda.mover = Box::new(NormalMover::new());
-                      
-                      let speed_x = rand::gen_range(0.0, 50.0);
-                      let speed_y = rand::gen_range(0.0, 50.0);
-                      panda.speed = vec2(speed_x, speed_y);
-                      panda.sweet_panda_loving_cooldown = PANDA_LOVING_COOLDOWN_SECONDS;
-                  }
-                }
-                else {
+                } else if panda.state == PandaState::FoundLove {
                     panda.apply_movement(&mut world);
 
                     if panda.mover.movement_complete() {
                         panda.state = PandaState::Normal;
                         panda.mover = Box::new(NormalMover::new());
-                        
+
+                        let speed_x = rand::gen_range(0.0, 50.0);
+                        let speed_y = rand::gen_range(0.0, 50.0);
+                        panda.speed = vec2(speed_x, speed_y);
+                        panda.sweet_panda_loving_cooldown = PANDA_LOVING_COOLDOWN_SECONDS;
+                    }
+                } else {
+                    panda.apply_movement(&mut world);
+
+                    if panda.mover.movement_complete() {
+                        panda.state = PandaState::Normal;
+                        panda.mover = Box::new(NormalMover::new());
+
                         let speed_x = rand::gen_range(0.0, 50.0);
                         let speed_y = rand::gen_range(0.0, 50.0);
                         panda.speed = vec2(speed_x, speed_y);
@@ -390,9 +418,8 @@ async fn main() {
         {
             // detect player grabbing pandas
             for panda in &mut pandas {
-
                 if panda.state != PandaState::Normal {
-                   continue;
+                    continue;
                 }
 
                 let player_pos = world.actor_pos(player.collider);
@@ -413,15 +440,15 @@ async fn main() {
 
             // detect pandas finding other pandas
             let mut in_love_indices = Vector::<usize>::new();
-            
+
             let num_of_pandas = pandas.len();
             for first_panda_index in 0..(num_of_pandas - 1) {
-               
-                let first_panda = &pandas[first_panda_index];    
+                let first_panda = &pandas[first_panda_index];
 
-                if first_panda.state != PandaState::Normal ||
-                  in_love_indices.contains(&first_panda_index) ||
-                  first_panda.sweet_panda_loving_cooldown > 0.0 {
+                if first_panda.state != PandaState::Normal
+                    || in_love_indices.contains(&first_panda_index)
+                    || first_panda.sweet_panda_loving_cooldown > 0.0
+                {
                     continue;
                 }
 
@@ -430,9 +457,10 @@ async fn main() {
                 for second_panda_index in (first_panda_index + 1)..num_of_pandas {
                     let second_panda = &pandas[second_panda_index];
 
-                    if second_panda.state != PandaState::Normal ||
-                        in_love_indices.contains(&second_panda_index) ||
-                        second_panda.sweet_panda_loving_cooldown > 0.0 {
+                    if second_panda.state != PandaState::Normal
+                        || in_love_indices.contains(&second_panda_index)
+                        || second_panda.sweet_panda_loving_cooldown > 0.0
+                    {
                         continue;
                     }
 
@@ -446,7 +474,10 @@ async fn main() {
                     if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
-                        storks.push(StorkFactory::create_stork(first_panda_pos, map_screen_width));
+                        storks.push(StorkFactory::create_stork(
+                            first_panda_pos,
+                            map_screen_width,
+                        ));
                         player_score += 50;
                         break;
                     }
@@ -461,27 +492,25 @@ async fn main() {
 
         // detect pandas dead of old age
         {
-         for p in pandas.iter_mut() {
+            for p in pandas.iter_mut() {
+                if p.state == PandaState::Grabbed {
+                    continue;
+                }
 
-            if p.state == PandaState::Grabbed {
-               continue;
+                if get_time() - p.spawn_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
+                    p.state = PandaState::Dead;
+                }
             }
 
-            if get_time() - p.spawn_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
-               p.state = PandaState::Dead;
-            }
-         }
-
-         // then remove them
-         //pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
+            // then remove them
+            //pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
         }
-
-
 
         // update bamboo count
         {
             if total_bamboo <= 0.0 {
-                total_bamboo = 0.0;
+                total_bamboo = 0.0; 
+                // TODO: GAME OVER
             } else {
                 let hungry_pandas = pandas
                     .iter()
@@ -490,23 +519,33 @@ async fn main() {
                     .count();
 
                 const HUNGER_RATE: f32 = 0.25;
-                total_bamboo -= hungry_pandas as f32 * (HUNGER_RATE * delta_time);
+                let eaten_bamboo = hungry_pandas as f32 * (HUNGER_RATE * delta_time);
+                remove_bamboo(&mut total_bamboo, eaten_bamboo)
+            }
+
+            const BAMBOO_REFRESH_TIME_SECONDS: f32 = 10.0;
+            const BAMBOO_TO_ADD: f32 = 10.0;
+            if elapsed_time > BAMBOO_REFRESH_TIME_SECONDS {
+               elapsed_time = 0.0;
+               add_bamboo(&mut total_bamboo, BAMBOO_TO_ADD)
             }
         }
 
         // update animation count and lovin-cooldown
         {
             for p in pandas.iter_mut() {
-               p.sweet_panda_loving_cooldown -= delta_time;
+                if p.state != PandaState::Dead {
+                    p.sweet_panda_loving_cooldown -= delta_time;
 
-               if p.sweet_panda_loving_cooldown  < 0.0 {
-                  p.sweet_panda_loving_cooldown = 0.0;
-               }
+                    if p.sweet_panda_loving_cooldown < 0.0 {
+                        p.sweet_panda_loving_cooldown = 0.0;
+                    }
 
-               p.frame_countdown -= delta_time;
+                    p.frame_countdown -= delta_time;
 
-                if p.frame_countdown <= 0.0 {
-                    p.update_animation_indices();
+                    if p.frame_countdown <= 0.0 {
+                        p.update_animation_indices();
+                    }
                 }
             }
 
