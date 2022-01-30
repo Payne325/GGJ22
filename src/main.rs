@@ -111,7 +111,6 @@ async fn main() {
 
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
-    let mut num_of_pandas_to_spawn_from_couples = 0;
     let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
     loop {
@@ -133,18 +132,6 @@ async fn main() {
            panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
            pandas.push(PandaFactory::create_panda(&mut world));
         }
-
-        if num_of_pandas_to_spawn_from_couples > 0 {
-
-            //println!("Generating {} Pandas", num_of_pandas_to_spawn_from_couples);
-            for _ in 0..num_of_pandas_to_spawn_from_couples {
-               pandas.push(PandaFactory::create_panda(&mut world));
-               //let i = pandas.len() -1;
-               //println!("Created at: {}, speed {}", world.actor_pos(pandas[i].collider), pandas[i].speed);
-            }
-
-            num_of_pandas_to_spawn_from_couples = 0;
-         }
 
         is_love_making = false;
 
@@ -381,7 +368,7 @@ async fn main() {
         {
             for stork in &mut storks {
                 if stork.apply_movement(get_frame_time()) {
-                    PandaFactory::create_panda_at(&mut world, stork.pos);
+                    pandas.push(PandaFactory::create_panda_at(&mut world, stork.pos));
                 }
 
                 stork.update_animation(get_frame_time());
@@ -448,9 +435,6 @@ async fn main() {
                         in_love_indices.push(second_panda_index);
                         storks.push(StorkFactory::create_stork(first_panda_pos, map_screen_width));
                         player_score += 50;
-
-                        // queue creation of new panda
-                        num_of_pandas_to_spawn_from_couples += 1;
                         break;
                     }
                 }
