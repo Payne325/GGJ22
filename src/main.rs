@@ -153,7 +153,12 @@ async fn main() {
                         WHITE,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
-                            source: Some(Rect::new(0.0, 0.0, 32.0, 32.0)),
+                            source: Some(Rect::new(
+                                32.0 * panda.thrown_anim_index,
+                                0.0,
+                                32.0,
+                                32.0,
+                            )),
                             ..Default::default()
                         },
                     );
