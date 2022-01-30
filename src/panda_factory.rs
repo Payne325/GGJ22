@@ -61,11 +61,17 @@ pub struct PandaFactory {
 }
 
 impl PandaFactory {
-   pub fn create_panda(world: &mut World, pos: Vec2, init_speed: Vec2) -> Panda {
+   pub fn create_panda(world: &mut World) -> Panda {
+      
+      let spawn_points = vec![vec2(170.0, 230.0), vec2(200.0, 100.0), vec2(730.0, 170.0), vec2(100.0, 800.0)];
+      let spawn_index = rand::gen_range(0.0, spawn_points.len() as f32) as usize;
+   
+      let speed_x = rand::gen_range(0.0, 50.0);
+      let speed_y = rand::gen_range(0.0, 50.0);
+      
       Panda {
-         // collider: world.add_actor(pos, 32, 32),
-         collider: world.add_actor(pos, 16, 16),
-         speed: init_speed,
+         collider: world.add_actor(spawn_points[spawn_index], 16, 16),
+         speed: vec2(speed_x, speed_y),
          mover: Box::new(NormalMover::new()),
          state: PandaState::Normal,
          heart_anim_index: 0.0,
