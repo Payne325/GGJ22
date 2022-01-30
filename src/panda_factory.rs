@@ -67,11 +67,16 @@ impl PandaFactory {
       let spawn_points = vec![vec2(170.0, 230.0), vec2(200.0, 100.0), vec2(230.0, 170.0), vec2(100.0, 200.0)];
       let spawn_index = rand::gen_range(0, spawn_points.len()) as usize;
    
+      return PandaFactory::create_panda_at(world, spawn_points[spawn_index]);
+   }
+
+   pub fn create_panda_at(world: &mut World, pos: Vec2) -> Panda {
+   
       let speed_x = rand::gen_range(0.0, 50.0);
       let speed_y = rand::gen_range(0.0, 50.0);
       
       Panda {
-         collider: world.add_actor(spawn_points[spawn_index], 16, 16),
+         collider: world.add_actor(pos, 16, 16),
          speed: vec2(speed_x, speed_y),
          mover: Box::new(NormalMover::new()),
          state: PandaState::Normal,

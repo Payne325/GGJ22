@@ -21,7 +21,9 @@ pub struct Stork {
 }
 
 impl Stork {
-   pub fn apply_movement(&mut self, dt: f32) {
+   pub fn apply_movement(&mut self, dt: f32) -> bool {
+      let mut unloaded = false;
+
       self.pos += self.speed * dt;
 
       let min_distance_sq = 16.0 * 16.0;
@@ -32,7 +34,10 @@ impl Stork {
          self.state = StorkState::Unloaded;
          self.anim_index = 0.0;
          self.frame_countdown = 0.0;
+         unloaded = true;
       }
+
+      return unloaded;
    }
 
    pub fn update_animation(&mut self, dt: f32) {
