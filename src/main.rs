@@ -38,8 +38,8 @@ pub enum DrumFillEvent {
 
 #[macroquad::main("Platformer")]
 async fn main() {
-    let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
-    //  play(&track1, true);
+    let track1 = audio::load_sound("assets/GGJ22_b3_loop.wav").await.unwrap();
+    play(&track1, true);
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
