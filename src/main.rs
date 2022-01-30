@@ -110,7 +110,7 @@ async fn main() {
     let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
-    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
+    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 20.0;
     let mut num_of_pandas_to_spawn_from_couples = 0;
     let mut panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
 
@@ -151,7 +151,7 @@ async fn main() {
         // draw pandas
         {
             for panda in &pandas {
-               if panda.state == PandaState::ReadyForDeletion {
+               if panda.state == PandaState::Dead {
                   continue;
                }
 
@@ -345,7 +345,7 @@ async fn main() {
         // panda movement
         {
             for panda in &mut pandas {
-                if panda.state == PandaState::ReadyForDeletion {
+                if panda.state == PandaState::Dead {
                     continue;
                 }
 
@@ -363,7 +363,7 @@ async fn main() {
                     panda.apply_movement(&mut world);
 
                     if panda.mover.movement_complete() {
-                        panda.state = PandaState::ReadyForDeletion;
+                        panda.state = PandaState::Dead;
                     }
                 } else {
                     panda.apply_movement(&mut world);
@@ -380,7 +380,10 @@ async fn main() {
         // move storks
         {
             for stork in &mut storks {
-                stork.apply_movement(get_frame_time());
+                if stork.apply_movement(get_frame_time()) {
+                    PandaFactory::create_panda_at(&mut world, stork.pos);
+                }
+
                 stork.update_animation(get_frame_time());
             }
         }
@@ -462,13 +465,18 @@ async fn main() {
         // detect pandas dead of old age
         {
          for p in pandas.iter_mut() {
-            if p.spawn_time - delta_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
-               p.state = PandaState::ReadyForDeletion;
+
+            if p.state == PandaState::Grabbed {
+               continue;
+            }
+
+            if get_time() - p.spawn_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
+               p.state = PandaState::Dead;
             }
          }
 
          // then remove them
-         pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
+         //pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
         }
 
 
