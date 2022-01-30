@@ -380,7 +380,10 @@ async fn main() {
         // move storks
         {
             for stork in &mut storks {
-                stork.apply_movement(get_frame_time());
+                if stork.apply_movement(get_frame_time()) {
+                    PandaFactory::create_panda_at(&mut world, stork.pos);
+                }
+
                 stork.update_animation(get_frame_time());
             }
         }
