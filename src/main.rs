@@ -77,34 +77,11 @@ async fn main() {
 
     let material =
         load_material(CRT_VERTEX_SHADER, CRT_FRAGMENT_SHADER, Default::default()).unwrap();
-
-    /*
-
-    let tileset = load_texture("assets/tileset.png").await.unwrap();
-    tileset.set_filter(FilterMode::Nearest);
-
-    let tiled_map_json = load_string("assets/map.json").await.unwrap();
-    let tiled_map = tiled::load_map(&tiled_map_json, &[("tileset.png", tileset)], &[]).unwrap();
-
-    let mut static_colliders = vec![];
-    for (_x, _y, tile) in tiled_map.tiles("main layer", None) {
-       static_colliders.push(if tile.is_some() {
-          Tile::Solid
-       } else {
-          Tile::Empty
-       });
-    }
-
-    let mut world = World::new();
-    world.add_static_tiled_layer(static_colliders, 8., 8., 40, 1);
-    */
-
     let mut world = World::new();
     let mut tilemap = tilemap::load_tilemap("assets/map.txt", &mut world).await;
 
     const THROW_COOLDOWN: f32 = 2.0;
     let mut player = Player {
-        // collider: world.add_actor(vec2(32.0, 150.0), 32, 32),
         collider: world.add_actor(vec2(32.0, 150.0), 10, 10),
         speed: 100.0,
         dir: vec2(0.0, 0.0),
@@ -119,24 +96,23 @@ async fn main() {
 
     println!("w:{}, h:{}", screen_width(), screen_height());
 
-    pandas.push(PandaFactory::create_panda(
-        &mut world,
-        vec2(170.0, 230.0),
-        vec2(0., 50.),
-    ));
-    pandas.push(PandaFactory::create_panda(
-        &mut world,
-        vec2(200.0, 100.0),
-        vec2(0., 0.),
-    ));
+    pandas.push(PandaFactory::create_panda(&mut world));
+    pandas.push(PandaFactory::create_panda(&mut world));
 
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
+
+    let mut num_of_pandas_to_spawn_from_couples = 0;
+    let mut panda_spawn_countdown = 4.0;
+    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
+    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
 
     loop {
         if is_key_down(KeyCode::Escape) {
             break;
         }
+
+        let delta_time = get_frame_time();
 
         camera.render_target = Some(render_target);
         set_camera(&camera);
@@ -144,7 +120,20 @@ async fn main() {
         // draw map
         tilemap.draw();
 
-        // tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
+        panda_spawn_countdown -= delta_time;
+
+        if panda_spawn_countdown <= 0.0 {
+           panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
+           pandas.push(PandaFactory::create_panda(&mut world));
+        }
+
+        if num_of_pandas_to_spawn_from_couples > 0 {
+            for _ in 0..num_of_pandas_to_spawn_from_couples {
+               pandas.push(PandaFactory::create_panda(&mut world));
+            }
+
+            num_of_pandas_to_spawn_from_couples = 0;
+         }
 
         is_love_making = false;
 
@@ -291,12 +280,12 @@ async fn main() {
             };
 
             if movement_is_happening {
-                world.move_h(player.collider, x_speed * get_frame_time());
-                world.move_v(player.collider, y_speed * get_frame_time());
+                world.move_h(player.collider, x_speed * delta_time);
+                world.move_v(player.collider, y_speed * delta_time);
             }
 
             if player.state == PlayerState::Throwing {
-                player.throw_cooldown -= get_frame_time();
+                player.throw_cooldown -= delta_time;
 
                 if player.throw_cooldown < 0.0 {
                     player.throw_cooldown = THROW_COOLDOWN;
@@ -388,6 +377,9 @@ async fn main() {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
                         player_score += 50;
+
+                        // queue creation of new panda
+                        num_of_pandas_to_spawn_from_couples += 1;
                     }
                 }
             }
@@ -397,6 +389,20 @@ async fn main() {
                 pandas[index].mover = Box::new(LoveMover::new());
             }
         }
+
+        // detect pandas dead of old age
+        {
+         for p in pandas.iter_mut() {
+            if p.spawn_time - delta_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
+               p.state = PandaState::ReadyForDeletion;
+            }
+         }
+
+         // then remove them
+         pandas = pandas.into_iter().filter(|p| p.state != PandaState::ReadyForDeletion).collect();
+        }
+
+
 
         // update bamboo count
         {
@@ -410,22 +416,21 @@ async fn main() {
                     .count();
 
                 const HUNGER_RATE: f32 = 0.25;
-                total_bamboo -= hungry_pandas as f32 * (HUNGER_RATE * get_frame_time());
+                total_bamboo -= hungry_pandas as f32 * (HUNGER_RATE * delta_time);
             }
         }
 
         // update animation count
         {
-            let f_dt = get_frame_time();
             for p in pandas.iter_mut() {
-                p.frame_countdown -= f_dt;
+                p.frame_countdown -= delta_time;
 
                 if p.frame_countdown <= 0.0 {
                     p.update_animation_indices();
                 }
             }
 
-            player.frame_countdown -= f_dt;
+            player.frame_countdown -= delta_time;
 
             if player.frame_countdown <= 0.0 {
                 player.frame_countdown = 0.25;
