@@ -105,8 +105,9 @@ async fn main() {
     pandas.push(PandaFactory::create_panda(&mut world));
     pandas.push(PandaFactory::create_panda(&mut world));
 
-    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
-    let render_target = render_target(1920 / 4, 1080 / 4);
+    let map_screen_width = 1920.0 / 4.0;
+    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, map_screen_width, 1080.0 / 4.0));
+    let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
@@ -134,8 +135,12 @@ async fn main() {
         }
 
         if num_of_pandas_to_spawn_from_couples > 0 {
+
+            //println!("Generating {} Pandas", num_of_pandas_to_spawn_from_couples);
             for _ in 0..num_of_pandas_to_spawn_from_couples {
                pandas.push(PandaFactory::create_panda(&mut world));
+               //let i = pandas.len() -1;
+               //println!("Created at: {}, speed {}", world.actor_pos(pandas[i].collider), pandas[i].speed);
             }
 
             num_of_pandas_to_spawn_from_couples = 0;
@@ -146,6 +151,10 @@ async fn main() {
         // draw pandas
         {
             for panda in &pandas {
+               if panda.state == PandaState::ReadyForDeletion {
+                  continue;
+               }
+
                 let pos = world.actor_pos(panda.collider);
 
                 if panda.state == PandaState::Thrown {
@@ -237,6 +246,7 @@ async fn main() {
                         stork.pos.y,
                         WHITE,
                         DrawTextureParams {
+                            flip_x: stork.speed.x < 0.0,
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
                             ..Default::default()
@@ -249,6 +259,7 @@ async fn main() {
                         stork.pos.y,
                         WHITE,
                         DrawTextureParams {
+                            flip_x: stork.speed.x < 0.0,
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
                             ..Default::default()
@@ -378,6 +389,11 @@ async fn main() {
         {
             // detect player grabbing pandas
             for panda in &mut pandas {
+
+                if panda.state != PandaState::Normal {
+                   continue;
+                }
+
                 let player_pos = world.actor_pos(player.collider);
                 let panda_pos = world.actor_pos(panda.collider);
 
@@ -396,18 +412,24 @@ async fn main() {
 
             // detect pandas finding other pandas
             let mut in_love_indices = Vector::<usize>::new();
+            
             let num_of_pandas = pandas.len();
-            for first_panda_index in 0..num_of_pandas {
-                let first_panda = &pandas[first_panda_index];
-                if first_panda.state != PandaState::Normal {
+            for first_panda_index in 0..(num_of_pandas - 1) {
+               
+                let first_panda = &pandas[first_panda_index];    
+
+                if first_panda.state != PandaState::Normal ||
+                  in_love_indices.contains(&first_panda_index) {
                     continue;
                 }
 
                 let first_panda_pos = world.actor_pos(first_panda.collider);
 
-                for second_panda_index in first_panda_index + 1..num_of_pandas {
+                for second_panda_index in (first_panda_index + 1)..num_of_pandas {
                     let second_panda = &pandas[second_panda_index];
-                    if second_panda.state != PandaState::Normal {
+
+                    if second_panda.state != PandaState::Normal ||
+                        in_love_indices.contains(&second_panda_index){
                         continue;
                     }
 
@@ -421,11 +443,12 @@ async fn main() {
                     if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
-                        storks.push(StorkFactory::create_stork(first_panda_pos));
+                        storks.push(StorkFactory::create_stork(first_panda_pos, map_screen_width));
                         player_score += 50;
 
                         // queue creation of new panda
                         num_of_pandas_to_spawn_from_couples += 1;
+                        break;
                     }
                 }
             }
