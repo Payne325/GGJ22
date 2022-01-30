@@ -105,8 +105,9 @@ async fn main() {
     pandas.push(PandaFactory::create_panda(&mut world));
     pandas.push(PandaFactory::create_panda(&mut world));
 
-    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
-    let render_target = render_target(1920 / 4, 1080 / 4);
+    let map_screen_width = 1920.0 / 4.0;
+    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, map_screen_width, 1080.0 / 4.0));
+    let render_target = render_target(map_screen_width as u32, 1080 / 4);
 
     const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 3.0;
     const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f64 = 6.0;
@@ -245,6 +246,7 @@ async fn main() {
                         stork.pos.y,
                         WHITE,
                         DrawTextureParams {
+                            flip_x: stork.speed.x < 0.0,
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
                             ..Default::default()
@@ -257,6 +259,7 @@ async fn main() {
                         stork.pos.y,
                         WHITE,
                         DrawTextureParams {
+                            flip_x: stork.speed.x < 0.0,
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect::new(32.0 * stork.anim_index, 0.0, 32.0, 32.0)),
                             ..Default::default()
@@ -440,7 +443,7 @@ async fn main() {
                     if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
-                        storks.push(StorkFactory::create_stork(first_panda_pos));
+                        storks.push(StorkFactory::create_stork(first_panda_pos, map_screen_width));
                         player_score += 50;
 
                         // queue creation of new panda
