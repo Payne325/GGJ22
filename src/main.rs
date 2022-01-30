@@ -2,7 +2,8 @@ mod mover;
 mod panda_factory;
 mod tilemap;
 
-use macroquad::audio;
+use macroquad::audio::Sound;
+use macroquad::audio::{self, play_sound};
 use macroquad::prelude::*;
 use macroquad_platformer::*;
 use macroquad_tiled as tiled;
@@ -38,13 +39,13 @@ pub enum DrumFillEvent {
 #[macroquad::main("Platformer")]
 async fn main() {
     let track1 = audio::load_sound("assets/GGJ22_a2_loop.wav").await.unwrap();
-    audio::play_sound(
-        track1,
-        audio::PlaySoundParams {
-            looped: true,
-            volume: 0.015,
-        },
-    );
+    //  play(&track1, true);
+
+    let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
+    let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
+    let sfx_pickup = audio::load_sound("assets/sfx_pickup.wav").await.unwrap();
+    let sfx_throw = audio::load_sound("assets/sfx_throw.wav").await.unwrap();
+    let mut sfx_heart_counter = None;
 
     let font = load_ttf_font("./assets/Gameplay.ttf").await.unwrap();
 
@@ -123,7 +124,6 @@ async fn main() {
         tilemap.draw();
 
         // tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
-
 
         // draw pandas
         {
@@ -267,6 +267,7 @@ async fn main() {
                         player.state = PlayerState::Throwing;
                         panda.state = PandaState::Thrown;
                         panda.mover = Box::new(ThrownMover::new(player.dir));
+                        play(&sfx_throw, false);
                     } else {
                         let player_pos = world.actor_pos(player.collider);
                         world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
@@ -275,6 +276,7 @@ async fn main() {
                     panda.apply_movement(&mut world);
 
                     if panda.mover.movement_complete() {
+                        sfx_heart_counter = None;
                         panda.state = PandaState::ReadyForDeletion;
                     }
                 } else {
@@ -303,6 +305,7 @@ async fn main() {
                     && panda.state != PandaState::Grabbed
                     && player.state == PlayerState::Normal
                 {
+                    play(&sfx_pickup, false);
                     panda.state = PandaState::Grabbed;
                     player.state = PlayerState::Grabbing;
                 }
@@ -340,8 +343,21 @@ async fn main() {
             }
 
             for index in in_love_indices {
+                sfx_heart_counter = Some(0);
                 pandas[index].state = PandaState::FoundLove;
                 pandas[index].mover = Box::new(LoveMover::new());
+            }
+
+            if let Some(heart_counter) = sfx_heart_counter {
+                if heart_counter % 10 == 0 {
+                    play(&sfx_heart, false);
+                }
+
+                sfx_heart_counter = Some(heart_counter + 1);
+
+                if heart_counter > 1000 {
+                    sfx_heart_counter = None;
+                }
             }
         }
 
@@ -415,4 +431,15 @@ async fn main() {
 
         next_frame().await
     }
+}
+
+fn play(sound: &Sound, looped: bool) {
+    // println!("Playing: {:?}", sound);
+    audio::play_sound(
+        *sound,
+        audio::PlaySoundParams {
+            looped,
+            volume: 0.5,
+        },
+    );
 }
