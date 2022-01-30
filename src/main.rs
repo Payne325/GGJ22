@@ -46,8 +46,11 @@ fn conf() -> Conf {
     }
 }
 
+
 #[macroquad::main(conf)]
 async fn main() {
+    let mut player_score = 0;
+
     let track1 = audio::load_sound("assets/GGJ22_b3_loop.wav").await.unwrap();
     // play(&track1, true); //TODO: re-enable music
 
@@ -382,6 +385,7 @@ async fn main() {
                     if val < HUBBA_HUBBA_RANGE && val2 < HUBBA_HUBBA_RANGE {
                         in_love_indices.push(first_panda_index);
                         in_love_indices.push(second_panda_index);
+                        player_score += 50;
                     }
                 }
             }
@@ -474,6 +478,19 @@ async fn main() {
             },
         );
 
+        let score_text = format!("Score: {}", player_score as i32);
+
+        draw_text_ex(
+            &score_text,
+            20.0,
+            60.0,
+            TextParams {
+                font_size: 20,
+                color: RED,
+                font,
+                ..Default::default()
+            },
+        );
 
         next_frame().await
     }

@@ -28,7 +28,9 @@ impl TileData {
 pub struct TileMap {
    pub tile_textures: Vec<Texture2D>,
    pub map: Vec<TileData>,
-   pub collision_map: Vec<bool>
+   pub collision_map: Vec<bool>,
+
+   map_size: Vec2
 }
 
 impl TileMap {
@@ -38,11 +40,21 @@ impl TileMap {
       }
    }
 
+   pub fn is_collidable(&mut self, loc: Vec2) -> bool {
+      let index = (loc.y * self.map_size.x + loc.x) as usize;
+
+      return self.collision_map[self.map[index].texture_index];
+   }
+
 }
 
 
 pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
-   let mut tilemap = TileMap { tile_textures: Vec::new(), map: Vec::new(), collision_map: Vec::new() };
+   let mut tilemap = TileMap { 
+      tile_textures: Vec::new(),
+      map: Vec::new(),
+      collision_map: Vec::new(),
+      map_size: Vec2::new(0.0, 0.0) };
 
    let file = fs::read_to_string(path).expect("Something went wrong reading the file");
    let lines = file.lines();
@@ -103,6 +115,9 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
       }
 
    }
+
+   tilemap.map_size.x = width as f32;
+   tilemap.map_size.y = height as f32;
 
    let mut static_colliders = vec![];
 
