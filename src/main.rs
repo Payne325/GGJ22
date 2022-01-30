@@ -48,9 +48,20 @@ fn conf() -> Conf {
     }
 }
 
+fn add_bamboo(bamboo_collection: &mut f32, bamboo_to_add: f32) {
+
+   *bamboo_collection += bamboo_to_add;
+}
+
+fn remove_bamboo(bamboo_collection: &mut f32, bamboo_to_remove: f32) {
+
+   *bamboo_collection -= bamboo_to_remove;
+}
+
 #[macroquad::main(conf)]
 async fn main() {
     let mut player_score = 0;
+    let mut elapsed_time = 0.0;
 
     let track1 = audio::load_sound("assets/Panda Dating Simulator - Turbo Arcade Edition Loop (127bpm).wav").await.unwrap();
     play(&track1, true); //TODO: re-enable music
@@ -118,6 +129,7 @@ async fn main() {
         }
 
         let delta_time = get_frame_time();
+        elapsed_time += delta_time;
 
         camera.render_target = Some(render_target);
         set_camera(&camera);
@@ -480,7 +492,8 @@ async fn main() {
         // update bamboo count
         {
             if total_bamboo <= 0.0 {
-                total_bamboo = 0.0;
+                total_bamboo = 0.0; 
+                // TODO: GAME OVER
             } else {
                 let hungry_pandas = pandas
                     .iter()
@@ -489,7 +502,15 @@ async fn main() {
                     .count();
 
                 const HUNGER_RATE: f32 = 0.25;
-                total_bamboo -= hungry_pandas as f32 * (HUNGER_RATE * delta_time);
+                let eaten_bamboo = hungry_pandas as f32 * (HUNGER_RATE * delta_time);
+                remove_bamboo(&mut total_bamboo, eaten_bamboo)
+            }
+
+            const BAMBOO_REFRESH_TIME_SECONDS: f32 = 10.0;
+            const BAMBOO_TO_ADD: f32 = 10.0;
+            if elapsed_time > BAMBOO_REFRESH_TIME_SECONDS {
+               elapsed_time = 0.0;
+               add_bamboo(&mut total_bamboo, BAMBOO_TO_ADD)
             }
         }
 
