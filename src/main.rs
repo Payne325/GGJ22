@@ -36,7 +36,17 @@ pub enum DrumFillEvent {
     Finish,
 }
 
-#[macroquad::main("Platformer")]
+fn conf() -> Conf {
+    Conf {
+        window_title: String::from("Panda Date Arcade"),
+        window_width: 1920,
+        window_height: 1080,
+        fullscreen: true,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(conf)]
 async fn main() {
     let track1 = audio::load_sound("assets/GGJ22_b3_loop.wav").await.unwrap();
     // play(&track1, true); //TODO: re-enable music
@@ -114,10 +124,14 @@ async fn main() {
         vec2(0., 0.),
     ));
 
-    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 400.0, 300.0));
-    let render_target = render_target(400, 300);
+    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 1920.0 / 4.0, 1080.0 / 4.0));
+    let render_target = render_target(1920 / 4, 1080 / 4);
 
     loop {
+        if is_key_down(KeyCode::Escape) {
+            break;
+        }
+
         camera.render_target = Some(render_target);
         set_camera(&camera);
 
