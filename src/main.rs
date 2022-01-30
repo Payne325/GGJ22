@@ -64,17 +64,17 @@ async fn main() {
 
     let font = load_ttf_font("./assets/Gameplay.ttf").await.unwrap();
 
-    let panda_walking_texture = load_texture("assets/walking_panda.png").await.unwrap();
-    let panda_thrown_texture = load_texture("assets/thrown_panda.png").await.unwrap();
-    let panda_love_texture = load_texture("assets/dancing_panda.png").await.unwrap();
+    let panda_walking_texture = load_texture("assets/walking_panda-export2.png").await.unwrap();
+    let panda_thrown_texture = load_texture("assets/thrown_panda-export2.png").await.unwrap();
+    let panda_love_texture = load_texture("assets/dancing_panda-export2.png").await.unwrap();
 
     let stork_loaded_texture = load_texture("assets/stork_loaded.png").await.unwrap();
     let stork_unloaded_texture = load_texture("assets/stork_unloaded.png").await.unwrap();
 
-    let player_walking_texture = load_texture("assets/walking_cupid_panda.png")
+    let player_walking_texture = load_texture("assets/walking_cupid_panda-export2.png")
         .await
         .unwrap();
-    let player_grabbing_texture = load_texture("assets/walking_cupid_panda_black.png")
+    let player_grabbing_texture = load_texture("assets/walking_cupid_panda_black-export2.png")
         .await
         .unwrap();
 
