@@ -105,7 +105,9 @@ pub async fn load_tilemap(path: &str, world: &mut World) -> TileMap {
 
       } else if read_tile {
          let tile_strings: Vec<&str> = line.split(",").collect();
-         tilemap.tile_textures.push(load_texture(tile_strings[0]).await.unwrap());
+         let texture = load_texture(tile_strings[0]).await.unwrap();
+         texture.set_filter(FilterMode::Nearest);
+         tilemap.tile_textures.push(texture);
 
          if tile_strings[2].contains("true") {
             tilemap.collision_map.push(true);
