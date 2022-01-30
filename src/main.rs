@@ -46,7 +46,6 @@ fn conf() -> Conf {
     }
 }
 
-
 #[macroquad::main(conf)]
 async fn main() {
     let mut player_score = 0;
@@ -58,7 +57,8 @@ async fn main() {
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
     let sfx_pickup = audio::load_sound("assets/sfx_pickup.wav").await.unwrap();
     let sfx_throw = audio::load_sound("assets/sfx_throw.wav").await.unwrap();
-    let mut sfx_heart_counter = None;
+    let mut sfx_loop_threshold = 0.0;
+    let mut is_love_making = false;
 
     let font = load_ttf_font("./assets/Gameplay.ttf").await.unwrap();
 
@@ -130,7 +130,7 @@ async fn main() {
         vec2(0., 0.),
     ));
 
-    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 1920.0 / 4.0, 1080.0 / 4.0));
+    let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 15.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
     loop {
@@ -145,6 +145,8 @@ async fn main() {
         tilemap.draw();
 
         // tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
+
+        is_love_making = false;
 
         // draw pandas
         {
@@ -190,6 +192,7 @@ async fn main() {
                         );
                     }
                 } else if panda.state == PandaState::FoundLove {
+                    is_love_making = true;
                     draw_texture_ex(
                         panda_love_texture,
                         pos.x - 12.0,
@@ -323,7 +326,6 @@ async fn main() {
                     panda.apply_movement(&mut world);
 
                     if panda.mover.movement_complete() {
-                        sfx_heart_counter = None;
                         panda.state = PandaState::ReadyForDeletion;
                     }
                 } else {
@@ -391,21 +393,8 @@ async fn main() {
             }
 
             for index in in_love_indices {
-                sfx_heart_counter = Some(0);
                 pandas[index].state = PandaState::FoundLove;
                 pandas[index].mover = Box::new(LoveMover::new());
-            }
-
-            if let Some(heart_counter) = sfx_heart_counter {
-                if heart_counter % 10 == 0 {
-                    play(&sfx_heart, false);
-                }
-
-                sfx_heart_counter = Some(heart_counter + 1);
-
-                if heart_counter > 1000 {
-                    sfx_heart_counter = None;
-                }
             }
         }
 
@@ -448,6 +437,17 @@ async fn main() {
             }
         }
 
+        // SFX looping
+        {
+            if is_love_making {
+                sfx_loop_threshold += macroquad::time::get_frame_time();
+                if sfx_loop_threshold > 0.20 {
+                    play(&sfx_heart, false);
+                    sfx_loop_threshold = 0.0;
+                }
+            }
+        }
+
         set_default_camera();
         clear_background(GREEN);
         render_target.texture.set_filter(FilterMode::Nearest);
@@ -464,7 +464,7 @@ async fn main() {
             },
         );
         gl_use_default_material();
-        
+
         let text = format!("Remaining Bamboo: {}", total_bamboo as i32);
         draw_text_ex(
             &text,
