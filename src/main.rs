@@ -102,8 +102,9 @@ async fn main() {
     let mut camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 1920.0 / 4.0, 1080.0 / 4.0));
     let render_target = render_target(1920 / 4, 1080 / 4);
 
-   //  const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
-   //  const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
+    let mut panda_spawn_countdown = 10.0;
+    const PANDA_INDEPENDANT_SPAWN_RATE_SECONDS: f32 = 4.0;
+    const PANDA_INDEPENDANT_DEATH_RATE_SECONDS: f32 = 6.0;
 
     loop {
         if is_key_down(KeyCode::Escape) {
@@ -118,6 +119,13 @@ async fn main() {
         // draw map
         tilemap.draw();
 
+        panda_spawn_countdown -= delta_time;
+
+        if panda_spawn_countdown <= 0.0 {
+           panda_spawn_countdown = PANDA_INDEPENDANT_SPAWN_RATE_SECONDS;
+           pandas.push(PandaFactory::create_panda(&mut world));
+        }
+        
         // draw pandas
         {
             for panda in &pandas {
@@ -379,6 +387,15 @@ async fn main() {
                     sfx_heart_counter = None;
                 }
             }
+        }
+
+        // detect pandas dead of old age
+        {
+         for p in pandas.iter_mut() {
+            if p.spawn_time - delta_time > PANDA_INDEPENDANT_DEATH_RATE_SECONDS {
+               p.state = PandaState::ReadyForDeletion;
+            }
+         }
         }
 
         // update bamboo count
