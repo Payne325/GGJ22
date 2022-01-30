@@ -8,7 +8,7 @@ pub enum PandaState {
    Grabbed,
    Thrown,
    FoundLove,
-   ReadyForDeletion
+   Dead
 }
 
 pub struct Panda {
@@ -21,7 +21,7 @@ pub struct Panda {
    pub love_anim_index: f32,
    pub thrown_anim_index: f32,
    pub frame_countdown: f32,
-   pub spawn_time: f32
+   pub spawn_time: f64
 }
 
 impl Panda {
@@ -80,7 +80,7 @@ impl PandaFactory {
          love_anim_index: 0.0,
          thrown_anim_index: 0.0,
          frame_countdown: 0.05,
-         spawn_time: get_frame_time()
+         spawn_time: get_time()
       }
    }
 }
