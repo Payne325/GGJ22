@@ -77,7 +77,8 @@ async fn main() {
         audio::load_sound("assets/Panda Dating Simulator - Turbo Arcade Edition Loop (127bpm).wav")
             .await
             .unwrap();
-    play(&track1, true); //TODO: re-enable music
+
+    play(&track1, true, 0.4); 
 
     let sfx_heart = audio::load_sound("assets/sfx_heart.wav").await.unwrap();
     let sfx_impact = audio::load_sound("assets/sfx_impact.wav").await.unwrap();
@@ -399,7 +400,7 @@ async fn main() {
                         player.state = PlayerState::Throwing;
                         panda.state = PandaState::Thrown;
                         panda.mover = Box::new(ThrownMover::new(player.dir));
-                        play(&sfx_throw, false);
+                        play(&sfx_throw, false, 0.8);
                     } else {
                         let player_pos = world.actor_pos(player.collider);
                         world.set_actor_position(panda.collider, player_pos + vec2(0., -5.));
@@ -460,7 +461,7 @@ async fn main() {
                     && panda.state != PandaState::Grabbed
                     && player.state == PlayerState::Normal
                 {
-                    play(&sfx_pickup, false);
+                    play(&sfx_pickup, false, 0.8);
                     panda.state = PandaState::Grabbed;
                     player.state = PlayerState::Grabbing;
                 }
@@ -594,7 +595,7 @@ async fn main() {
             if is_love_making {
                 sfx_loop_threshold += macroquad::time::get_frame_time();
                 if sfx_loop_threshold > 0.20 {
-                    play(&sfx_heart, false);
+                    play(&sfx_heart, false, 0.8);
                     sfx_loop_threshold = 0.0;
                 }
             }
@@ -654,13 +655,13 @@ fn get_random_game_point() -> Vec2 {
     vec2(x.floor(), y.floor())
 }
 
-fn play(sound: &Sound, looped: bool) {
+fn play(sound: &Sound, looped: bool, volume: f32) {
     // println!("Playing: {:?}", sound);
     audio::play_sound(
         *sound,
         audio::PlaySoundParams {
             looped,
-            volume: 0.9,
+            volume: volume,
         },
     );
 }
